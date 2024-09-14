@@ -7,8 +7,6 @@ praticando toda semana.
   <img alt="in.orbit" src="./src/assets/logo.svg" >
 </p>
 
-<br>
-
 <h1 align="center">
 	<img alt="in.orbit" src="./src/assets/cover.png" />
 </h1>
