@@ -2,9 +2,9 @@ import { createGoal } from "@/functions/create-goal";
 import { createGoalSchema } from "@/schemas/create-goal";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
-export const getGoalsRoute: FastifyPluginAsyncZod = async app => {
+export const createGoalRoute: FastifyPluginAsyncZod = async app => {
 	app.post(
-		"/goals",
+		"/goal",
 		{
 			schema: {
 				body: createGoalSchema,
