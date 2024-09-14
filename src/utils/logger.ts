@@ -5,7 +5,7 @@ interface Log {
 }
 
 interface LogWithData extends Log {
-	data: string;
+	data: string | number;
 }
 
 const getLog = (type: string, message: string) => {
@@ -16,7 +16,11 @@ const getLog = (type: string, message: string) => {
 	} as Log);
 };
 
-const getLogWithData = (type: string, message: string, data: string) => {
+const getLogWithData = (
+	type: string,
+	message: string,
+	data: string | number,
+) => {
 	return JSON.stringify({
 		type: type,
 		message: message,
@@ -32,13 +36,13 @@ function logger(
 	type: Type,
 	message: string,
 	withData: true,
-	data: string
+	data: string | number,
 ): void;
 function logger(
 	type: Type,
 	message: string,
 	withData?: boolean,
-	data?: string
+	data?: string | number,
 ): void {
 	let log = "";
 

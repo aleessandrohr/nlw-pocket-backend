@@ -1,5 +1,8 @@
+# folders
 /node_modules
-
 /.migrations
+/dist
 
-.env
+# files
+*.env*
+!.env.example

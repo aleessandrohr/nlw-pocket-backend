@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { goals, goalCompletions } from "@/db/schema";
 import dayjs from "dayjs";
-import { gte, lte, and, eq, sql } from "drizzle-orm";
+import { gte, lte, and, eq, sql, desc } from "drizzle-orm";
 
 export const getWeekSummary = async () => {
 	const firstDayOfWeek = dayjs().startOf("week").toDate();
@@ -16,7 +16,7 @@ export const getWeekSummary = async () => {
 				createdAt: goals.createdAt,
 			})
 			.from(goals)
-			.where(lte(goals.createdAt, lastDayOfWeek))
+			.where(lte(goals.createdAt, lastDayOfWeek)),
 	);
 
 	const goalsCompletedInWeek = db.$with("goals_completed_in_week").as(
@@ -30,13 +30,14 @@ export const getWeekSummary = async () => {
         `.as("completedAtDate"),
 			})
 			.from(goalCompletions)
+			.orderBy(desc(goalCompletions.createdAt))
 			.innerJoin(goals, eq(goals.id, goalCompletions.goalId))
 			.where(
 				and(
 					gte(goalCompletions.createdAt, firstDayOfWeek),
-					lte(goalCompletions.createdAt, lastDayOfWeek)
-				)
-			)
+					lte(goalCompletions.createdAt, lastDayOfWeek),
+				),
+			),
 	);
 
 	const goalsCompletedByWeekDay = db.$with("goals_completed_by_week_day").as(
@@ -54,21 +55,29 @@ export const getWeekSummary = async () => {
         `.as("completions"),
 			})
 			.from(goalsCompletedInWeek)
-			.groupBy(goalsCompletedInWeek.completedAtDate)
+			.groupBy(goalsCompletedInWeek.completedAtDate),
 	);
+
+	interface Goal {
+		id: string;
+		title: string;
+		completedAt: Date;
+	}
+
+	type GoalsPerDay = Record<string, Array<Goal>>;
 
 	const result = await db
 		.with(goalsCreatedUpToWeek, goalsCompletedInWeek, goalsCompletedByWeekDay)
 		.select({
 			completed:
 				sql /*sql*/`(SELECT COUNT(*) FROM ${goalsCompletedInWeek})`.mapWith(
-					Number
+					Number,
 				),
 			total:
 				sql /*sql*/`(SELECT SUM(${goalsCreatedUpToWeek.desiredWeeklyFrequency}) FROM ${goalsCreatedUpToWeek})`.mapWith(
-					Number
+					Number,
 				),
-			goalsPerDay: sql`
+			goalsPerDay: sql<GoalsPerDay>`
         JSON_OBJECT_AGG(
           ${goalsCompletedByWeekDay.completedAtDate},
           ${goalsCompletedByWeekDay.completions}
@@ -77,7 +86,9 @@ export const getWeekSummary = async () => {
 		})
 		.from(goalsCompletedByWeekDay);
 
+	const [summary] = result;
+
 	return {
-		summary: result,
+		summary,
 	};
 };

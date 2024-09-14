@@ -10,6 +10,7 @@ import { createGoalCompletionRoute } from "./routes/create-goal-completion";
 import { getWeekSummaryRoute } from "./routes/get-week-summary";
 import { logger } from "@/utils/logger";
 import fastifyCors from "@fastify/cors";
+import { env } from "@/schemas/env";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -35,10 +36,10 @@ for (const route of routes) {
 
 const run = async () => {
 	await app.listen({
-		port: 3333,
+		port: env.PORT,
 	});
 
-	logger("warning", "Server is running.");
+	logger("warning", "server is running on port", true, env.PORT);
 };
 
 run();
