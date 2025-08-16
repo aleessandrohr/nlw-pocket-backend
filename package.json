@@ -1,37 +1,45 @@
 {
 	"name": "nlw-pocket-backend",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"main": "index.js",
 	"scripts": {
-		"dev": "tsx --env-file .env --watch src/http/server.ts",
+		"dev": "tsx --env-file .env --watch src/http/server.ts | pino-pretty",
 		"seed": "tsx --env-file .env src/db/seed.ts",
 		"build": "tsup src",
-		"start": "node --env-file=.env ./dist/http/server.js",
-		"docker:compose": "docker compose up -d",
-		"drizzle-kit:generate": "npx drizzle-kit generate",
-		"drizzle-kit:migrate": "npx drizzle-kit migrate",
-		"drizzle-kit:studio": "npx drizzle-kit studio"
+		"start": "node --env-file=.env ./dist/http/server.js | pino-pretty",
+		"docker:start": "docker compose up -d",
+		"docker:stop": "docker compose stop",
+		"drizzle:generate": "npx drizzle-kit generate",
+		"drizzle:migrate": "npx drizzle-kit migrate",
+		"drizzle:studio": "npx drizzle-kit studio"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"description": "",
 	"devDependencies": {
-		"@biomejs/biome": "^1.8.3",
-		"@types/node": "^22.5.4",
+		"@biomejs/biome": "^1.9.4",
+		"@types/node": "^22.17.1",
 		"drizzle-kit": "^0.24.2",
-		"tsup": "^8.2.4",
-		"tsx": "^4.19.0",
-		"typescript": "^5.6.2"
+		"pino-pretty": "^13.1.1",
+		"tsup": "^8.5.0",
+		"tsx": "^4.20.4",
+		"typescript": "^5.9.2"
 	},
 	"dependencies": {
-		"@fastify/cors": "^9.0.1",
+		"@fastify/cookie": "^11.0.2",
+		"@fastify/cors": "^11.1.0",
+		"@fastify/jwt": "^10.0.0",
+		"@fastify/swagger": "^9.5.1",
+		"@fastify/swagger-ui": "^5.2.3",
 		"@paralleldrive/cuid2": "^2.2.2",
+		"bcryptjs": "^3.0.2",
+		"crypto": "^1.0.1",
 		"dayjs": "^1.11.13",
 		"drizzle-orm": "^0.33.0",
-		"fastify": "^4.28.1",
-		"fastify-type-provider-zod": "^2.0.0",
-		"postgres": "^3.4.4",
-		"zod": "^3.23.8"
+		"fastify": "^5.5.0",
+		"fastify-type-provider-zod": "^5.0.3",
+		"postgres": "^3.4.7",
+		"zod": "^4.0.17"
 	}
 }

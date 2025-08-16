@@ -1,0 +1,18 @@
+import z from "zod";
+
+export const getWeekSummaryResponseSchema = z.object({
+	completed: z.number(),
+	total: z.number(),
+	goalsPerDay: z
+		.record(
+			z.string(),
+			z.array(
+				z.object({
+					id: z.cuid2(),
+					title: z.string(),
+					completedAt: z.union([z.date(), z.string()]),
+				})
+			)
+		)
+		.nullable(),
+});

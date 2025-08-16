@@ -1,4 +1,4 @@
-# Node + TypeScript + Fastify + Drizzle + Biome + Docker
+# Node + TypeScript + Fastify + Postgres + Drizzle + Biome + Docker
 
 Adicione atividades que te fazem bem e que você quer continuar
 praticando toda semana.
@@ -19,6 +19,7 @@ Esse projeto foi desenvolvido com as seguintes tecnologias:
 - [TypeScript](https://www.typescriptlang.org/)
 - [Fastify](https://fastify.dev/)
 - [Drizzle](https://orm.drizzle.team/)
+- [Postgres](https://www.postgresql.org/)
 - [Biome](https://biomejs.dev/)
 - [Docker](https://www.docker.com/)
 
@@ -39,35 +40,39 @@ Para iniciá-lo, siga os passos abaixo:
 
 ```bash
 # Instalar as dependências
-$ yarn
+$ bun
 
 # Iniciar o Banco de Dados
-$ yarn docker:compose
+$ bun docker:start
 
 # Gerar as migrations
-$ yarn drizzle-kit:generate
+$ bun drizzle:generate
 
 # Rodar as migrations
-$ yarn drizzle-kit:migrate
+$ bun drizzle:migrate
 
 # Adicionar dados iniciais no Banco de Dados (opcional)
-$ yarn seed
+$ bun seed
 
 # Buildar o projeto
-$ yarn build
+$ bun run build
 
 # Iniciar o projeto
-$ yarn start
+$ bun start
 ```
 
 O app estará disponível no seu browser pelo endereço [http://localhost:3333](http://localhost:3333).
 
-## 💻 Projeto
+## 💻 Projeto Inicial
 
 Adicione atividades que te fazem bem e que você quer continuar
 praticando toda semana.
 
 Este é um projeto desenvolvido durante a **[Next Level Week Together](https://nextlevelweek.com/)**, apresentada dos dias 09 a 12 de setembro de 2024.
+
+## Projeto Estendido
+
+- Adicionado sistema de auth com refresh token e multiple sessions
 
 ## 🔖 Layout
 

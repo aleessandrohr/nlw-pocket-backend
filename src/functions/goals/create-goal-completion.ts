@@ -1,8 +1,9 @@
 import { db } from "@/db";
-import { goals, goalCompletions } from "@/db/schema";
-import { count, and, gte, lte, sql, eq } from "drizzle-orm";
-import dayjs from "dayjs";
+import { goalCompletions, goals } from "@/db/schema";
 import { logger } from "@/utils/logger";
+import dayjs from "dayjs";
+import { and, count, eq, gte, lte, sql } from "drizzle-orm";
+import { ConflictError } from "../errors/conflit-error";
 
 interface CreateGoalCompletionRequest {
 	goalId: string;
@@ -31,7 +32,7 @@ export const createGoalCompletion = async ({
 			.groupBy(goalCompletions.goalId)
 	);
 
-	const result = await db
+	const [result] = await db
 		.with(goalCompletionCounts)
 		.select({
 			desiredWeeklyFrequency: goals.desiredWeeklyFrequency,
@@ -43,12 +44,10 @@ export const createGoalCompletion = async ({
 		.leftJoin(goalCompletionCounts, eq(goalCompletionCounts.goalId, goals.id))
 		.where(eq(goals.id, goalId));
 
-	const { completionCount, desiredWeeklyFrequency } = result[0];
+	const { completionCount, desiredWeeklyFrequency } = result;
 
-	if (completionCount >= desiredWeeklyFrequency) {
-		logger("error", "goal already completed this week");
-		throw new Error("goal already completed this week");
-	}
+	if (completionCount >= desiredWeeklyFrequency)
+		throw new ConflictError("goal", "already completed this week");
 
 	const insertResult = await db
 		.insert(goalCompletions)
@@ -56,6 +55,8 @@ export const createGoalCompletion = async ({
 		.returning();
 
 	const [goalCompletion] = insertResult;
+
+	logger.debug({ goalCompletion }, "goal completion created");
 
 	return {
 		goalCompletion,
