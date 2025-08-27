@@ -1,4 +1,8 @@
 import {
+	ACCESS_TOKEN_COOKIE_NAME,
+	ACCESS_TOKEN_COOKIE_OPTIONS,
+	CSRF_TOKEN_COOKIE_NAME,
+	CSRF_TOKEN_COOKIE_OPTIONS,
 	REFRESH_TOKEN_COOKIE_NAME,
 	REFRESH_TOKEN_COOKIE_OPTIONS,
 } from "@/config";
@@ -10,9 +14,8 @@ export const logoutRoute: FastifyPluginAsyncZod = async app => {
 	app.post(
 		"/auth/logout",
 		{
-			onRequest: [app.authenticate],
+			onRequest: [app.authenticate, app.csrfProtection],
 			schema: {
-				security: [{ bearerAuth: [] }],
 				summary: "Sair",
 				description: "Sair",
 				tags: ["auth", "private"],
@@ -26,6 +29,12 @@ export const logoutRoute: FastifyPluginAsyncZod = async app => {
 
 			await logout({ userId: id, refreshTokenFromCookie });
 
+			reply.clearCookie(CSRF_TOKEN_COOKIE_NAME, {
+				path: CSRF_TOKEN_COOKIE_OPTIONS.path,
+			});
+			reply.clearCookie(ACCESS_TOKEN_COOKIE_NAME, {
+				path: ACCESS_TOKEN_COOKIE_OPTIONS.path,
+			});
 			reply.clearCookie(REFRESH_TOKEN_COOKIE_NAME, {
 				path: REFRESH_TOKEN_COOKIE_OPTIONS.path,
 			});

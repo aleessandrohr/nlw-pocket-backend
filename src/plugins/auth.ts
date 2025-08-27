@@ -4,7 +4,9 @@ import fp from "fastify-plugin";
 
 const authenticate = async (request: FastifyRequest) => {
 	try {
-		await request.jwtVerify();
+		await request.jwtVerify({
+			onlyCookie: true,
+		});
 	} catch (err) {
 		throw new AuthenticationError();
 	}

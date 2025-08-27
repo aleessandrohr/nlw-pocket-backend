@@ -6,17 +6,20 @@ export const getPendingGoalsRoute: FastifyPluginAsyncZod = async app => {
 	app.get(
 		"/pending-goals",
 		{
+			onRequest: [app.authenticate],
 			schema: {
 				summary: "Pegar metas",
 				description: "Pegar metas",
-				tags: ["goals", "public"],
+				tags: ["goals", "private"],
 				response: {
 					200: getPendingGoalsResponseSchema,
 				},
 			},
 		},
-		async (_, reply) => {
-			const { pendingGoals } = await getWeekPendingGoals();
+		async (request, reply) => {
+			const userId = request.user.id;
+
+			const { pendingGoals } = await getWeekPendingGoals({ userId });
 
 			return reply.status(200).send(pendingGoals);
 		}

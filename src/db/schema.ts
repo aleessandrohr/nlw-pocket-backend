@@ -48,6 +48,9 @@ export const goals = pgTable("goals", {
 	id: text("id")
 		.primaryKey()
 		.$default(() => createId()),
+	userId: text("user_id")
+		.references(() => users.id, { onDelete: "cascade" })
+		.notNull(),
 	title: text("title").notNull(),
 	desiredWeeklyFrequency: integer("desired_weekly_frequency").notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true })
@@ -77,3 +80,21 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 		references: [users.id],
 	}),
 }));
+
+export const goalsRelations = relations(goals, ({ one, many }) => ({
+	user: one(users, {
+		fields: [goals.userId],
+		references: [users.id],
+	}),
+	completions: many(goalCompletions),
+}));
+
+export const goalCompletionsRelations = relations(
+	goalCompletions,
+	({ one }) => ({
+		goal: one(goals, {
+			fields: [goalCompletions.goalId],
+			references: [goals.id],
+		}),
+	})
+);

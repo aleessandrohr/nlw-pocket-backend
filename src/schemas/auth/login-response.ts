@@ -1,5 +1,3 @@
-import z from "zod";
+import { createUserResponseSchema } from "@/schemas/auth/create-user-response";
 
-export const loginResponseSchema = z.object({
-	accessToken: z.jwt(),
-});
+export const loginResponseSchema = createUserResponseSchema;

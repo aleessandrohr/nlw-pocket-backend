@@ -2,7 +2,7 @@ import z from "zod";
 
 export const getWeekSummaryResponseSchema = z.object({
 	completed: z.number(),
-	total: z.number(),
+	total: z.number().nullable(),
 	goalsPerDay: z
 		.record(
 			z.string(),

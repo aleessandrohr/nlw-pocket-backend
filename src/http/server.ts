@@ -1,8 +1,15 @@
+import {
+	ACCESS_TOKEN_COOKIE_NAME,
+	CSRF_TOKEN_COOKIE_OPTIONS,
+	REFRESH_TOKEN_COOKIE_NAME,
+} from "@/config";
+import { AuthenticationError } from "@/functions/errors/authentication-error";
 import authPlugin from "@/plugins/auth";
 import { env } from "@/schemas/env";
 import { logger } from "@/utils/logger";
 import fastifyCookie from "@fastify/cookie";
 import fastifyCors from "@fastify/cors";
+import fastifyCsrfProtection from "@fastify/csrf-protection";
 import fastifyJwt from "@fastify/jwt";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
@@ -15,20 +22,21 @@ import {
 } from "fastify-type-provider-zod";
 import { ZodError } from "zod";
 import { logoutRoute } from "./routes/private/auth/logout";
+import { createGoalRoute } from "./routes/private/goals/create-goal";
+import { createGoalCompletionRoute } from "./routes/private/goals/create-goal-completion";
+import { getPendingGoalsRoute } from "./routes/private/goals/get-pending-goals";
+import { getWeekSummaryRoute } from "./routes/private/summary/get-week-summary";
 import { getProfileRoute } from "./routes/private/user/get-profile";
 import { createUserRoute } from "./routes/public/auth/create-user";
+import { csrfTokenRoute } from "./routes/public/auth/csrf-token";
 import { loginRoute } from "./routes/public/auth/login";
 import { refreshTokenRoute } from "./routes/public/auth/refresh-token";
-import { createGoalRoute } from "./routes/public/goals/create-goal";
-import { createGoalCompletionRoute } from "./routes/public/goals/create-goal-completion";
-import { getPendingGoalsRoute } from "./routes/public/goals/get-pending-goals";
-import { getWeekSummaryRoute } from "./routes/public/summary/get-week-summary";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
-app.setErrorHandler((error, _, reply) => {
+app.setErrorHandler((error, request, reply) => {
 	logger.error(error);
 
 	if (error instanceof ZodError) {
@@ -73,10 +81,15 @@ app.setErrorHandler((error, _, reply) => {
 	});
 });
 app.register(fastifyCors, {
-	origin: "*",
+	origin: env.FRONTEND_URL,
+	credentials: true,
 });
 app.register(fastifyJwt, {
 	secret: env.JWT_SECRET,
+	cookie: {
+		cookieName: "accessToken",
+		signed: false,
+	},
 });
 app.register(fastifySwagger, {
 	mode: "dynamic",
@@ -102,6 +115,9 @@ app.register(authPlugin);
 app.register(fastifyCookie, {
 	secret: env.COOKIE_SECRET,
 });
+app.register(fastifyCsrfProtection, {
+	cookieOpts: CSRF_TOKEN_COOKIE_OPTIONS,
+});
 
 const routes = [
 	createUserRoute,
@@ -113,6 +129,7 @@ const routes = [
 	getProfileRoute,
 	refreshTokenRoute,
 	logoutRoute,
+	csrfTokenRoute,
 ];
 
 for (const route of routes) {

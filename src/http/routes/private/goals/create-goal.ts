@@ -7,20 +7,23 @@ export const createGoalRoute: FastifyPluginAsyncZod = async app => {
 	app.post(
 		"/goal",
 		{
+			onRequest: [app.authenticate, app.csrfProtection],
 			schema: {
 				body: createGoalSchema,
 				summary: "Criar meta",
 				description: "Criar meta",
-				tags: ["goals", "public"],
+				tags: ["goals", "private"],
 				response: {
 					201: createGoalResponseSchema,
 				},
 			},
 		},
 		async (request, reply) => {
+			const userId = request.user.id;
 			const { title, desiredWeeklyFrequency } = request.body;
 
 			const { goal } = await createGoal({
+				userId,
 				title,
 				desiredWeeklyFrequency,
 			});

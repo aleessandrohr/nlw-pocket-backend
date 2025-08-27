@@ -4,7 +4,11 @@ import { logger } from "@/utils/logger";
 import dayjs from "dayjs";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 
-export const getWeekSummary = async () => {
+interface GetWeekSummaryRequest {
+	userId: string;
+}
+
+export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
 	const firstDayOfWeek = dayjs().startOf("week").toDate();
 	const lastDayOfWeek = dayjs().endOf("week").toDate();
 
@@ -17,7 +21,7 @@ export const getWeekSummary = async () => {
 				createdAt: goals.createdAt,
 			})
 			.from(goals)
-			.where(lte(goals.createdAt, lastDayOfWeek))
+			.where(and(lte(goals.createdAt, lastDayOfWeek), eq(goals.userId, userId)))
 	);
 
 	logger.debug({ goalsCreatedUpToWeek }, "goals created up to week");
@@ -38,7 +42,8 @@ export const getWeekSummary = async () => {
 			.where(
 				and(
 					gte(goalCompletions.createdAt, firstDayOfWeek),
-					lte(goalCompletions.createdAt, lastDayOfWeek)
+					lte(goalCompletions.createdAt, lastDayOfWeek),
+					eq(goals.userId, userId)
 				)
 			)
 	);

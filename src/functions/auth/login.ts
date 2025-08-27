@@ -93,5 +93,6 @@ export const login = async ({
 		user: userWithoutPassword,
 		accessToken,
 		refreshToken,
+		refreshTokenExpiresAt,
 	};
 };

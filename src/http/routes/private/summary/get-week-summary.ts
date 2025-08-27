@@ -6,17 +6,19 @@ export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
 	app.get(
 		"/summary",
 		{
+			onRequest: [app.authenticate],
 			schema: {
 				summary: "Pegar resumo da semana",
 				description: "Pegar resumo da semana",
-				tags: ["summary", "public"],
+				tags: ["summary", "private"],
 				response: {
 					200: getWeekSummaryResponseSchema,
 				},
 			},
 		},
-		async (_, reply) => {
-			const { summary } = await getWeekSummary();
+		async (request, reply) => {
+			const userId = request.user.id;
+			const { summary } = await getWeekSummary({ userId });
 
 			return reply.status(200).send(summary);
 		}

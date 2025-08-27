@@ -7,20 +7,23 @@ export const createGoalCompletionRoute: FastifyPluginAsyncZod = async app => {
 	app.post(
 		"/completion",
 		{
+			onRequest: [app.authenticate, app.csrfProtection],
 			schema: {
 				body: createGoalCompletionSchema,
 				summary: "Concluir meta",
 				description: "Concluir meta",
-				tags: ["goals", "public"],
+				tags: ["goals", "private"],
 				response: {
 					201: createGoalCompletionResponseSchema,
 				},
 			},
 		},
 		async (request, reply) => {
+			const userId = request.user.id;
 			const { goalId } = request.body;
 
 			const { goalCompletion } = await createGoalCompletion({
+				userId,
 				goalId,
 			});
 

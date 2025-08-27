@@ -7,11 +7,23 @@ import { ConflictError } from "../errors/conflit-error";
 
 interface CreateGoalCompletionRequest {
 	goalId: string;
+	userId: string;
 }
 
 export const createGoalCompletion = async ({
+	userId,
 	goalId,
 }: CreateGoalCompletionRequest) => {
+	const goalExists = await db
+		.select({ id: goals.id })
+		.from(goals)
+		.where(and(eq(goals.id, goalId), eq(goals.userId, userId)))
+		.limit(1);
+
+	if (goalExists.length === 0) {
+		throw new ConflictError("goal", "not found or does not belong to user");
+	}
+
 	const firstDayOfWeek = dayjs().startOf("week").toDate();
 	const lastDayOfWeek = dayjs().endOf("week").toDate();
 
