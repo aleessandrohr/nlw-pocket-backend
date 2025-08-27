@@ -1,7 +1,8 @@
-import { db, client } from "@/db";
-import { goals, goalCompletions } from "@/db/schema";
+import { client, db } from "@/db";
+import { goalCompletions, goals } from "@/db/schema";
 import dayjs from "dayjs";
 
+// deprecated
 const seed = async () => {
 	await db.delete(goalCompletions);
 	await db.delete(goals);
@@ -10,14 +11,17 @@ const seed = async () => {
 		.insert(goals)
 		.values([
 			{
+				userId: "",
 				title: "Acordar cedo",
 				desiredWeeklyFrequency: 5,
 			},
 			{
+				userId: "",
 				title: "Me exercitar",
 				desiredWeeklyFrequency: 3,
 			},
 			{
+				userId: "",
 				title: "Meditar",
 				desiredWeeklyFrequency: 1,
 			},
