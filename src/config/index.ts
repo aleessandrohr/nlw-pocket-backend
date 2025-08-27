@@ -11,7 +11,7 @@ export const REFRESH_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	path: "/",
 	httpOnly: true,
 	secure: process.env.NODE_ENV === "production",
-	sameSite: "strict",
+	sameSite: "lax",
 	maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
 };
 
@@ -21,7 +21,7 @@ export const ACCESS_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	path: "/",
 	httpOnly: true,
 	secure: process.env.NODE_ENV === "production",
-	sameSite: "strict",
+	sameSite: "lax",
 	maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
 };
 
@@ -31,5 +31,5 @@ export const CSRF_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	path: "/",
 	httpOnly: true,
 	secure: process.env.NODE_ENV === "production",
-	sameSite: "strict",
+	sameSite: "lax",
 };
