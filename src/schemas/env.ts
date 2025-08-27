@@ -2,6 +2,7 @@ import z from "zod";
 
 const envSchema = z.object({
 	PORT: z.string().transform(Number),
+	HOST: z.string(),
 	DATABASE_URL: z.url(),
 	FRONTEND_URL: z.url(),
 	JWT_SECRET: z.string(),

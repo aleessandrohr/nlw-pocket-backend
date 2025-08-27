@@ -147,9 +147,10 @@ logger.info({ route: "/docs" }, "route added");
 const run = async () => {
 	await app.listen({
 		port: env.PORT,
+		host: env.HOST,
 	});
 
-	logger.info({ port: env.PORT }, "server is running!");
+	logger.info({ port: env.PORT, host: env.HOST }, "server is running!");
 };
 
 run();
