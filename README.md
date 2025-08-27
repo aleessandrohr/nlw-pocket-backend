@@ -46,10 +46,10 @@ $ bun
 $ bun docker:start
 
 # Gerar as migrations
-$ bun drizzle:generate
+$ bun db:generate
 
 # Rodar as migrations
-$ bun drizzle:migrate
+$ bun db:migrate
 
 # Adicionar dados iniciais no Banco de Dados (opcional)
 $ bun seed

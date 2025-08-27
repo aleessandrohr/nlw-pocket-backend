@@ -9,9 +9,9 @@
 		"start": "node --env-file=.env ./dist/http/server.js | pino-pretty",
 		"docker:start": "docker compose up -d",
 		"docker:stop": "docker compose stop",
-		"drizzle:generate": "npx drizzle-kit generate",
-		"drizzle:migrate": "npx drizzle-kit migrate",
-		"drizzle:studio": "npx drizzle-kit studio"
+		"db:generate": "npx drizzle-kit generate",
+		"db:migrate": "npx drizzle-kit migrate",
+		"db:studio": "npx drizzle-kit studio"
 	},
 	"keywords": [],
 	"author": "",
