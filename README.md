@@ -61,7 +61,7 @@ $ bun run build
 $ bun start
 ```
 
-O app estará disponível no seu browser pelo endereço [http://localhost:3333](http://localhost:3333).
+O app estará disponível no seu browser pelo endereço [http://localhost:3333](http://localhost:3000).
 
 ## 💻 Projeto Inicial
 
