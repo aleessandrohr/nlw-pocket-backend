@@ -5,7 +5,7 @@ import { logger } from "@/utils/logger";
 import { hashPassword } from "@/utils/password";
 import { generateRefreshToken } from "@/utils/refresh-token";
 import type { FastifyInstance } from "fastify";
-import { PostgresError } from "postgres";
+import postgres from "postgres";
 import { ConflictError } from "../errors/conflit-error";
 
 interface CreateUserRequest {
@@ -82,7 +82,7 @@ export const createUser = async ({
 			refreshToken,
 		};
 	} catch (error: unknown) {
-		if (error instanceof PostgresError && error.code === "23505") {
+		if (error instanceof postgres.PostgresError && error.code === "23505") {
 			throw new ConflictError("user");
 		}
 

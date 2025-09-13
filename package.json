@@ -6,7 +6,9 @@
 		"dev": "tsx --env-file .env --watch src/http/server.ts | pino-pretty",
 		"seed": "tsx --env-file .env src/db/seed.ts",
 		"build": "tsup src",
+		"build:bun": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile build/server src/http/server.ts",
 		"start": "node --env-file=.env ./dist/http/server.js | pino-pretty",
+		"start:bun": "./build/server | pino-pretty",
 		"docker:start": "docker compose up -d",
 		"docker:stop": "docker compose stop",
 		"db:generate": "npx drizzle-kit generate",
@@ -21,7 +23,6 @@
 		"@biomejs/biome": "^1.9.4",
 		"@types/node": "^22.17.1",
 		"drizzle-kit": "^0.24.2",
-		"pino-pretty": "^13.1.1",
 		"tsup": "^8.5.0",
 		"tsx": "^4.20.4",
 		"typescript": "^5.9.2"
@@ -40,7 +41,7 @@
 		"drizzle-orm": "^0.33.0",
 		"fastify": "^5.5.0",
 		"fastify-type-provider-zod": "^5.0.3",
-		"postgres": "^3.4.7",
+		"pino-pretty": "^13.1.1",
 		"zod": "^4.0.17"
 	}
 }
