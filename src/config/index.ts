@@ -5,7 +5,7 @@ export * from "./regex";
 export const SALT_ROUNDS = 10;
 
 export const REFRESH_TOKEN_SIZE = 64;
-export const REFRESH_TOKEN_EXPIRATION_TIME = 60 * 24 * 7 * 1000; // 7 days
+export const REFRESH_TOKEN_EXPIRATION_TIME = 7 * 24 * 60 * 60; // 7 days
 export const REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
 export const REFRESH_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	path: "/",
