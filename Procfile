@@ -1,2 +1,2 @@
-release: npm install && npx drizzle-kit migrate
+release: npx drizzle-kit migrate
 web: node ./dist/http/server.js
