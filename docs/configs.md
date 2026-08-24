@@ -1,0 +1,31 @@
+# Configurações
+
+As variáveis são validadas em [`src/schemas/env.ts`](../src/schemas/env.ts).
+Use [`.env.example`](../.env.example) como referência e nunca versione `.env`.
+
+| Variável | Uso |
+| --- | --- |
+| `PORT` | Porta HTTP, convertida para número. |
+| `HOST` | Host de bind; padrão `0.0.0.0`. |
+| `DATABASE_URL` | URL do PostgreSQL. |
+| `FRONTEND_URL` | Origem autorizada pelo CORS. |
+| `JWT_SECRET` | Assinatura dos access tokens. |
+| `COOKIE_SECRET` | Assinatura do cookie CSRF. |
+
+## Scripts
+
+Os scripts principais estão no `package.json`:
+
+- `dev`: inicia tsx com reload;
+- `build`: gera `dist` com tsup;
+- `start`: inicia o bundle Node;
+- `build:bun` e `start:bun`: alternativa compilada com Bun;
+- `docker:start` e `docker:stop`: controlam o PostgreSQL local;
+- `db:generate`, `db:migrate` e `db:studio`: ferramentas do Drizzle;
+- `seed`: executa o seed legado do projeto.
+
+## Qualidade
+
+O backend usa Biome 1.x com tabs, aspas duplas e ponto e vírgula. A validação
+direcionada é `npx biome check`; ela não deve ser confundida com um script
+`biome:check`, que não existe atualmente neste `package.json`.

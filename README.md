@@ -1,89 +1,59 @@
-# Node + TypeScript + Fastify + Postgres + Drizzle + Biome + Docker
+# in.orbit — Backend
 
-Adicione atividades que te fazem bem e que você quer continuar
-praticando toda semana.
+API do in.orbit, aplicação web para cadastro de metas semanais, conclusões e
+resumo de produtividade.
 
 <p align="center">
-  <img alt="in.orbit" src="./src/assets/logo.svg" >
+  <img alt="in.orbit" src="./src/assets/logo.svg" width="180">
 </p>
 
-<h1 align="center">
-	<img alt="in.orbit" src="./src/assets/cover.png" />
-</h1>
+## Stack
 
-## 🧪 Tecnologias
+- Node.js/Bun e TypeScript
+- Fastify 5
+- PostgreSQL e Drizzle ORM
+- Zod para contratos HTTP
+- JWT, cookies e proteção CSRF
+- Biome, tsup e Docker Compose
 
-Esse projeto foi desenvolvido com as seguintes tecnologias:
+## Documentação
 
-- [Node](https://nodejs.org/en/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Fastify](https://fastify.dev/)
-- [Drizzle](https://orm.drizzle.team/)
-- [Postgres](https://www.postgresql.org/)
-- [Biome](https://biomejs.dev/)
-- [Docker](https://www.docker.com/)
+- [Visão geral](./docs/overview.md)
+- [Autenticação e API](./docs/auth-and-api.md)
+- [Rotas](./docs/routes-and-api.md)
+- [Banco de dados](./docs/database.md)
+- [Configurações](./docs/configs.md)
+- [Build e execução](./docs/build-and-run.md)
+- [Datas e horários](./docs/date-and-time.md)
+- [Estrutura de `src`](./docs/src-structure-and-conventions.md)
+- [Plano da demo do portfólio](./docs/PLAN.md)
+- [Changelog](./docs/changelog.md)
+- [Instruções compartilhadas](../nlw-pocket-docs/instructions.md)
 
-Para mais detalhes, veja o **[package.json](./package.json)**.
+## Execução local
 
-## 🚀 Como executar
+Requisitos: Bun, Docker e PostgreSQL via Docker Compose.
 
-Como pré-requisitos, é necessário instalar o [Node](https://nodejs.org/en/) e o [Yarn](https://classic.yarnpkg.com/en/docs/install/) em suas versões LTS.
-
-Cumprindo os pré-requisitos, clone o projeto e acesse a pasta clonada.
-
-```bash
-$ git clone https://github.com/aleessandrohr/nlw-pocket-backend
-$ cd nlw-pocket-backend
+```sh
+bun install
+bun run docker:start
+bun run db:generate
+bun run db:migrate
+bun run dev
 ```
 
-Para iniciá-lo, siga os passos abaixo:
+A API inicia por padrão em `http://localhost:3000`. O arquivo `.env.example`
+contém as variáveis necessárias para o ambiente local.
 
-```bash
-# Instalar as dependências
-$ bun
+Para uma execução semelhante à produção:
 
-# Iniciar o Banco de Dados
-$ bun docker:start
-
-# Gerar as migrations
-$ bun db:generate
-
-# Rodar as migrations
-$ bun db:migrate
-
-# Adicionar dados iniciais no Banco de Dados (opcional)
-$ bun seed
-
-# Buildar o projeto
-$ bun run build
-
-# Iniciar o projeto
-$ bun start
+```sh
+bun run build
+bun run start
 ```
 
-O app estará disponível no seu browser pelo endereço [http://localhost:3333](http://localhost:3000).
+## Origem
 
-## 💻 Projeto Inicial
-
-Adicione atividades que te fazem bem e que você quer continuar
-praticando toda semana.
-
-Este é um projeto desenvolvido durante a **[Next Level Week Together](https://nextlevelweek.com/)**, apresentada dos dias 09 a 12 de setembro de 2024.
-
-## Projeto Estendido
-
-- Adicionado sistema de auth com refresh token e multiple sessions
-
-## 🔖 Layout
-
-Você pode visualizar o layout do projeto através do link abaixo:
-
-- [Layout Web](https://www.figma.com/community/file/1415093862269754302/nlw-pocket-js-in-orbit)
-
-Lembrando que você precisa ter uma conta no [Figma](https://figma.com/).
-
-## 📝 License
-
-Esse projeto está sob a licença MIT. Veja o arquivo [LICENSE](./LICENSE) para mais detalhes.
-
----
+O projeto foi desenvolvido a partir da Next Level Week Pocket/in.orbit e
+mantém licença MIT. O layout de referência está no
+[Figma da Rocketseat](https://www.figma.com/community/file/1415093862269754302/nlw-pocket-js-in-orbit).
