@@ -9,6 +9,7 @@ Não existe prefixo `/api` no contrato atual.
 | --- | --- | --- |
 | `POST` | `/auth/create-user` | Cria usuário e inicia sessão. |
 | `POST` | `/auth/login` | Autentica por e-mail e senha. |
+| `POST` | `/auth/demo` | Cria uma conta temporária e inicia a demonstração. |
 | `GET` | `/auth/csrf-token` | Cria e retorna o token CSRF. |
 | `POST` | `/auth/refresh-token` | Renova access e refresh tokens. |
 

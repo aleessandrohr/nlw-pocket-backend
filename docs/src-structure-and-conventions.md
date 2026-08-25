@@ -16,7 +16,8 @@ src/
 ## Responsabilidades
 
 - `http/routes` traduz HTTP para funções e registra hooks de segurança;
-- `functions` contém as operações de negócio e acesso ao banco;
+- `functions` contém as operações de negócio e acesso ao banco; a limpeza demo
+  fica em `functions/demo` para poder ser reutilizada pela futura rota;
 - `schemas` define contratos de entrada e saída;
 - `db/schema.ts` é a fonte de verdade das tabelas Drizzle;
 - `config` centraliza opções de cookies e constantes;

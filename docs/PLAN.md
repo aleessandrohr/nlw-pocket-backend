@@ -1,7 +1,7 @@
 # Demo efêmera do in.orbit no portfólio
 
-> Status: planejamento. Esta integração ainda não está implementada no
-> backend, frontend ou portfólio.
+> Status: rota de criação da demo implementada no backend; a integração do
+> frontend e do portfólio ainda não.
 
 ## Resumo
 
@@ -9,21 +9,30 @@ Criar uma rota `/demo` no frontend do in.orbit. O botão do portfólio passará 
 
 O acesso normal ao site continuará levando à tela de login.
 
+## Etapa concluída
+
+- O schema de `users` possui `is_demo` e `demo_expires_at`.
+- A relação entre conclusões e metas declara `ON DELETE CASCADE`.
+- O comando `bun run cleanup:demo` executa a limpeza diretamente no PostgreSQL,
+  em uma transação e sem depender de scheduler ou serviço externo.
+- A rota `POST /auth/demo` cria uma conta isolada, dados iniciais e sessão com
+  expiração configurada no backend.
+- A criação de uma nova demo remove todas as contas demo anteriores em uma
+  transação antes de inserir os novos dados.
+- O middleware e o refresh token invalidam demos expiradas sem depender da
+  remoção física imediata.
+- A migration foi gerada, mas ainda não foi aplicada ao banco.
+
 ## Alterações principais
 
 ### Backend
 
-- Adicionar `POST /auth/demo`.
-- Criar usuário temporário isolado por visitante, com metas e conclusões iniciais.
-- Adicionar aos usuários:
-  - `is_demo`
-  - `demo_expires_at`
+- Aplicar rate limit específico no endpoint demo.
+- Reutilizar os campos `is_demo` e `demo_expires_at` já adicionados ao usuário.
 - Reutilizar os cookies atuais de access token, refresh token e CSRF.
 - Alterar o logout para excluir usuários demo, sessões, metas e conclusões relacionadas.
-- Adicionar `ON DELETE CASCADE` entre conclusões e metas.
-- Criar rotina `cleanup:demo` para remover contas expiradas.
-- Configurar execução periódica no Heroku Scheduler, por exemplo a cada 15 minutos.
-- Aplicar rate limit específico no endpoint demo.
+- Reutilizar a rotina de exclusão de dados demo na abertura de uma nova demo.
+- Manter o comando manual `bun run cleanup:demo` para manutenção administrativa.
 
 ### Frontend do in.orbit
 

@@ -9,12 +9,15 @@ interface GetProfileRequest {
 }
 
 export const getProfile = async ({ email }: GetProfileRequest) => {
+	// Expõe o estado demo para o frontend manter a identificação após recarregar a página.
 	const user = await db.query.users.findFirst({
 		where: eq(users.email, email),
 		columns: {
 			id: true,
 			name: true,
 			email: true,
+			isDemo: true,
+			demoExpiresAt: true,
 			updatedAt: true,
 			createdAt: true,
 		},

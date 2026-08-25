@@ -25,6 +25,8 @@ export const ACCESS_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
 };
 
+export const DEMO_EXPIRATION_TIME = 60 * 60; // 1 hora
+
 export const CSRF_TOKEN_COOKIE_NAME = "_csrf";
 export const CSRF_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	signed: true,

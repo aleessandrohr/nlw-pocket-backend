@@ -13,7 +13,8 @@
 		"docker:stop": "docker compose stop",
 		"db:generate": "npx drizzle-kit generate",
 		"db:migrate": "npx drizzle-kit migrate",
-		"db:studio": "npx drizzle-kit studio"
+		"db:studio": "npx drizzle-kit studio",
+		"cleanup:demo": "tsx --env-file .env src/db/cleanup-demo.ts"
 	},
 	"keywords": [],
 	"author": "",

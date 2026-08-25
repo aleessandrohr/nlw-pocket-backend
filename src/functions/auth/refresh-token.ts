@@ -1,12 +1,13 @@
 import { ACCESS_TOKEN_EXPIRATION_TIME } from "@/config";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
+import { isDemoExpired } from "@/functions/demo/is-demo-expired";
+import dayjs from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import {
 	generateRefreshToken,
 	verifyRefreshToken,
 } from "@/utils/refresh-token";
-import dayjs from "dayjs";
 import { eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { AuthenticationError } from "../errors/authentication-error";
@@ -86,18 +87,27 @@ export const refreshToken = async ({
 		throw new AuthenticationError();
 	}
 
+	// Preserva o estado demo ao renovar os tokens da sessão autenticada.
 	const user = await db.query.users.findFirst({
 		where: eq(users.id, matchingSession.userId),
 		columns: {
 			id: true,
 			name: true,
 			email: true,
+			isDemo: true,
+			demoExpiresAt: true,
 			updatedAt: true,
 			createdAt: true,
 		},
 	});
 
 	if (!user) throw new AuthenticationError();
+
+	if (isDemoExpired(user)) {
+		await db.delete(sessions).where(eq(sessions.id, matchingSession.id));
+
+		throw new AuthenticationError();
+	}
 
 	logger.debug(
 		{

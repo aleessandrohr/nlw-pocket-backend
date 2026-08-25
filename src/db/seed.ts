@@ -1,6 +1,6 @@
 import { client, db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import dayjs from "dayjs";
+import dayjs from "@/lib/dayjs";
 
 // deprecated
 const seed = async () => {

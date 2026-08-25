@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
+import dayjs from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
-import dayjs from "dayjs";
 import { and, count, eq, gte, lte, sql } from "drizzle-orm";
 import { ConflictError } from "../errors/conflit-error";
 

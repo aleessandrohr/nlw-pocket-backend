@@ -4,8 +4,8 @@ import {
 	REFRESH_TOKEN_SIZE,
 	SALT_ROUNDS,
 } from "@/config";
+import dayjs from "@/lib/dayjs";
 import bcrypt from "bcryptjs";
-import dayjs from "dayjs";
 
 export const generateRefreshToken = async () => {
 	const refreshToken = crypto.randomBytes(REFRESH_TOKEN_SIZE).toString("hex");

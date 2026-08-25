@@ -8,6 +8,8 @@ export const getProfileResponseSchema = createUserSchema
 	})
 	.extend({
 		id: z.cuid2(),
+		isDemo: z.boolean(),
+		demoExpiresAt: z.date().nullable(),
 		updatedAt: z.date(),
 		createdAt: z.date(),
 	});

@@ -1,6 +1,7 @@
 import { createId } from "@paralleldrive/cuid2";
 import { relations } from "drizzle-orm";
 import {
+	boolean,
 	integer,
 	pgTable,
 	text,
@@ -15,6 +16,8 @@ export const users = pgTable("users", {
 	name: varchar("name", { length: 255 }).notNull(),
 	email: varchar("email", { length: 256 }).notNull().unique(),
 	password: text("password").notNull(),
+	isDemo: boolean("is_demo").notNull().default(false),
+	demoExpiresAt: timestamp("demo_expires_at", { withTimezone: true }),
 	updatedAt: timestamp("updated_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),
@@ -63,7 +66,7 @@ export const goalCompletions = pgTable("goal_completions", {
 		.primaryKey()
 		.$default(() => createId()),
 	goalId: text("goal_id")
-		.references(() => goals.id)
+		.references(() => goals.id, { onDelete: "cascade" })
 		.notNull(),
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()

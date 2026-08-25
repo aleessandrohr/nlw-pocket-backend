@@ -1,6 +1,6 @@
 {
-	"id": "d1f0386a-5387-47f2-8057-c761ab1608af",
-	"prevId": "00000000-0000-0000-0000-000000000000",
+	"id": "8c4a4c4a-4dd5-416a-b474-ced986ee71c2",
+	"prevId": "d1f0386a-5387-47f2-8057-c761ab1608af",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -36,7 +36,7 @@
 					"tableTo": "goals",
 					"columnsFrom": ["goal_id"],
 					"columnsTo": ["id"],
-					"onDelete": "no action",
+					"onDelete": "cascade",
 					"onUpdate": "no action"
 				}
 			},
@@ -191,6 +191,19 @@
 					"type": "text",
 					"primaryKey": false,
 					"notNull": true
+				},
+				"is_demo": {
+					"name": "is_demo",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"demo_expires_at": {
+					"name": "demo_expires_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
 				},
 				"updated_at": {
 					"name": "updated_at",

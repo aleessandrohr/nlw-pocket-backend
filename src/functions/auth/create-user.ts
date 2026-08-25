@@ -28,6 +28,7 @@ export const createUser = async ({
 	const hashedPassword = await hashPassword(password);
 
 	try {
+		// Retorna o estado demo completo para manter o contrato das sessões consistente.
 		const [newUser] = await db
 			.insert(users)
 			.values({
@@ -39,6 +40,8 @@ export const createUser = async ({
 				id: users.id,
 				name: users.name,
 				email: users.email,
+				isDemo: users.isDemo,
+				demoExpiresAt: users.demoExpiresAt,
 				updatedAt: users.updatedAt,
 				createdAt: users.createdAt,
 			});

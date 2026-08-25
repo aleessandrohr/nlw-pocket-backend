@@ -23,12 +23,15 @@ export const login = async ({
 	userAgent,
 	ipAddress,
 }: LoginRequest) => {
+	// Carrega o estado demo para que o frontend consiga identificar a sessão atual.
 	const user = await db.query.users.findFirst({
 		where: eq(users.email, email),
 		columns: {
 			id: true,
 			name: true,
 			email: true,
+			isDemo: true,
+			demoExpiresAt: true,
 			password: true,
 			updatedAt: true,
 			createdAt: true,
@@ -41,6 +44,8 @@ export const login = async ({
 		id: user.id,
 		name: user.name,
 		email: user.email,
+		isDemo: user.isDemo,
+		demoExpiresAt: user.demoExpiresAt,
 		updatedAt: user.updatedAt,
 		createdAt: user.createdAt,
 	};

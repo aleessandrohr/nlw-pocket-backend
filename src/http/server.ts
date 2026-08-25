@@ -29,6 +29,7 @@ import { getWeekSummaryRoute } from "./routes/private/summary/get-week-summary";
 import { getProfileRoute } from "./routes/private/user/get-profile";
 import { createUserRoute } from "./routes/public/auth/create-user";
 import { csrfTokenRoute } from "./routes/public/auth/csrf-token";
+import { demoRoute } from "./routes/public/auth/demo";
 import { loginRoute } from "./routes/public/auth/login";
 import { refreshTokenRoute } from "./routes/public/auth/refresh-token";
 
@@ -126,6 +127,7 @@ const routes = [
 	createGoalCompletionRoute,
 	getWeekSummaryRoute,
 	loginRoute,
+	demoRoute,
 	getProfileRoute,
 	refreshTokenRoute,
 	logoutRoute,

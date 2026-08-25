@@ -3,9 +3,10 @@
 O schema persiste `createdAt`, `updatedAt`, `refreshTokenExpiresAt` e
 `goalCompletions.createdAt` como `timestamp with time zone`.
 
-O backend usa `dayjs` para calcular início e fim da semana e para gerar dados
-do seed. A lógica de resumo usa o relógio e os timestamps do PostgreSQL nas
-consultas.
+O backend usa [`src/lib/dayjs.ts`](../src/lib/dayjs.ts) como ponto único de
+configuração do `dayjs`, incluindo o locale `pt-br`. Essa instância é usada
+para calcular início e fim da semana e para gerar dados do seed. A lógica de
+resumo usa o relógio e os timestamps do PostgreSQL nas consultas.
 
 Ao adicionar um instante:
 

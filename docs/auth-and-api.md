@@ -12,6 +12,18 @@ O login e o cadastro criam uma sessão persistida em `sessions` e enviam:
 - `refreshToken`: token aleatório armazenado apenas por hash no banco, com
   validade de 7 dias.
 
+`POST /auth/demo` usa o mesmo mecanismo de cookies, mas cria um usuário
+isolado com `is_demo = true`, dados iniciais e expiração configurada no backend. O e-mail
+e a senha são gerados internamente e não são expostos ao visitante. As
+respostas de autenticação também retornam `isDemo` e `demoExpiresAt` para o
+frontend identificar a sessão.
+
+Rotas privadas revalidam `demoExpiresAt` no banco, então um access token ainda
+não expirado não mantém uma demo ativa. O refresh token também é invalidado
+quando o prazo termina. Ao iniciar uma nova demo, as contas demo anteriores
+são removidas em uma transação; não há dependência de `pg_cron` ou serviço
+externo.
+
 As opções dos cookies estão em [`src/config/index.ts`](../src/config/index.ts).
 Eles são `httpOnly`, `secure` em produção e usam `SameSite=Strict`.
 

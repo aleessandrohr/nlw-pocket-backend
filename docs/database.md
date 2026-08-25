@@ -5,15 +5,25 @@ em [`src/db/index.ts`](../src/db/index.ts) e [`src/db/schema.ts`](../src/db/sche
 
 ## Tabelas atuais
 
-- `users`: nome, e-mail, senha com hash e timestamps;
+- `users`: nome, e-mail, senha com hash, marcação de demo, expiração e
+  timestamps;
 - `sessions`: sessões, hash do refresh token, expiração, user-agent e IP;
 - `goals`: metas vinculadas a um usuário e frequência semanal desejada;
 - `goal_completions`: conclusões vinculadas a uma meta.
 
-`sessions.user_id` e `goals.user_id` usam `ON DELETE CASCADE`. A FK de
-`goal_completions.goal_id` na migration inicial usa `ON DELETE NO ACTION`,
-portanto exclusões de metas precisam respeitar essa ordem até que o schema
-seja alterado e uma nova migration seja gerada.
+`sessions.user_id`, `goals.user_id` e `goal_completions.goal_id` agora usam
+`ON DELETE CASCADE` no schema. A migration inicial ainda possui a FK de
+conclusões com `ON DELETE NO ACTION`; a migration seguinte corrige essa
+diferença e deve ser aplicada pelo responsável pelo ambiente.
+
+`cleanup:demo` remove todas as contas demo, suas conclusões e metas nessa
+ordem, dentro de uma transação SQL. A criação de uma nova demo executa a mesma
+limpeza antes de inserir a conta, evitando acumular dados demo abandonados.
+Sessões são removidas pela cascata de `sessions.user_id`.
+
+A expiração não depende da remoção física: o middleware rejeita demos cujo
+`demo_expires_at` terminou e o refresh token também é invalidado. O comando
+`bun run cleanup:demo` permanece disponível para limpeza manual.
 
 ## Migrations
 
