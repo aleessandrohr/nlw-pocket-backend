@@ -30,6 +30,7 @@ Não existe prefixo `/api` no contrato atual.
 | `GET` | `/pending-goals?week=0` | Lista metas, conclusões da semana e informa `completedToday`. `week=0` é a semana atual; `week=-1` é a anterior. |
 | `GET` | `/archived-goals` | Lista metas arquivadas do usuário. |
 | `POST` | `/completion` | Registra a conclusão de uma meta. |
+| `DELETE` | `/completion/:completionId` | Desmarca uma conclusão somente da semana atual. |
 | `GET` | `/summary?week=0` | Retorna o resumo da semana selecionada. `week=0` é a semana atual; `week=-1` é a anterior. |
 
 As rotas de alteração usam `app.authenticate` e `app.csrfProtection`. Os

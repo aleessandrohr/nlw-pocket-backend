@@ -31,4 +31,6 @@
 - **Impacto adicional:** uma meta agora aceita no máximo uma conclusão por dia, com validação transacional para evitar duplicidade em requisições simultâneas.
 - **Impacto adicional:** `/pending-goals` agora retorna `completedToday` para o frontend bloquear visualmente uma nova conclusão no mesmo dia.
 - **Correção:** limites de data usados no cálculo de `completedToday` agora são enviados como ISO UTC ao driver PostgreSQL.
+- **Impacto adicional:** adicionada a remoção de conclusões da semana atual, mantendo conclusões históricas imutáveis.
+- **Correção:** o CORS passou a autorizar o método `DELETE` usado para desmarcar conclusões.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.

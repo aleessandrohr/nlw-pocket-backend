@@ -25,6 +25,7 @@ import { logoutRoute } from "./routes/private/auth/logout";
 import { archiveGoalRoute } from "./routes/private/goals/archive-goal";
 import { createGoalRoute } from "./routes/private/goals/create-goal";
 import { createGoalCompletionRoute } from "./routes/private/goals/create-goal-completion";
+import { deleteGoalCompletionRoute } from "./routes/private/goals/delete-goal-completion";
 import { getArchivedGoalsRoute } from "./routes/private/goals/get-archived-goals";
 import { getPendingGoalsRoute } from "./routes/private/goals/get-pending-goals";
 import { unarchiveGoalRoute } from "./routes/private/goals/unarchive-goal";
@@ -87,6 +88,7 @@ app.setErrorHandler((error, request, reply) => {
 app.register(fastifyCors, {
 	origin: env.FRONTEND_URL,
 	credentials: true,
+	methods: ["GET", "HEAD", "POST", "DELETE", "OPTIONS"],
 });
 app.register(fastifyJwt, {
 	secret: env.JWT_SECRET,
@@ -131,6 +133,7 @@ const routes = [
 	getArchivedGoalsRoute,
 	getPendingGoalsRoute,
 	createGoalCompletionRoute,
+	deleteGoalCompletionRoute,
 	getWeekSummaryRoute,
 	loginRoute,
 	demoRoute,
