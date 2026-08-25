@@ -5,5 +5,6 @@ export const getPendingGoalsResponseSchema = z.array(
 	createGoalSchema.extend({
 		id: z.cuid2(),
 		completionCount: z.number(),
+		completedToday: z.boolean(),
 	})
 );

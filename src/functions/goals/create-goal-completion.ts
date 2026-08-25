@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
 import { getWeekRange } from "@/functions/week/get-week-range";
+import dayjs from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { and, count, eq, gte, lte, sql } from "drizzle-orm";
 import { ConflictError } from "../errors/conflit-error";
@@ -11,7 +12,7 @@ interface CreateGoalCompletionRequest {
 	week: number;
 }
 
-// Registra uma conclusão somente para uma meta ativa e pertencente ao usuário.
+// Registra uma conclusão por dia, somente para uma meta ativa e pertencente ao usuário.
 export const createGoalCompletion = async ({
 	userId,
 	goalId,
@@ -23,75 +24,96 @@ export const createGoalCompletion = async ({
 		throw new ConflictError("goal", "can only be completed in current week");
 	}
 
-	const goalExists = await db
-		.select({ id: goals.id })
-		.from(goals)
-		.where(
-			and(
-				eq(goals.id, goalId),
-				eq(goals.userId, userId),
-				eq(goals.isArchived, false)
-			)
-		)
-		.limit(1);
-
-	if (goalExists.length === 0) {
-		throw new ConflictError("goal", "not found or does not belong to user");
-	}
-
 	const { firstDayOfWeek, lastDayOfWeek } = selectedWeek;
 
-	const goalCompletionCounts = db.$with("goal_completion_counts").as(
-		db
-			.select({
-				goalId: goalCompletions.goalId,
-				completionCount: count(goalCompletions.id).as("completion_count"),
-			})
+	return db.transaction(async tx => {
+		// Bloqueia a meta durante a validação para impedir conclusões simultâneas no mesmo dia.
+		const [goal] = await tx
+			.select({ id: goals.id })
+			.from(goals)
+			.where(
+				and(
+					eq(goals.id, goalId),
+					eq(goals.userId, userId),
+					eq(goals.isArchived, false)
+				)
+			)
+			.for("update")
+			.limit(1);
+
+		if (!goal) {
+			throw new ConflictError("goal", "not found or does not belong to user");
+		}
+
+		const startOfToday = dayjs().startOf("day").toDate();
+		const endOfToday = dayjs().endOf("day").toDate();
+
+		const [todayCompletion] = await tx
+			.select({ id: goalCompletions.id })
 			.from(goalCompletions)
 			.where(
 				and(
-					gte(goalCompletions.createdAt, firstDayOfWeek),
-					lte(goalCompletions.createdAt, lastDayOfWeek),
+					eq(goalCompletions.goalId, goalId),
 					eq(goalCompletions.isArchived, false),
-					eq(goalCompletions.goalId, goalId)
+					gte(goalCompletions.createdAt, startOfToday),
+					lte(goalCompletions.createdAt, endOfToday)
 				)
 			)
-			.groupBy(goalCompletions.goalId)
-	);
+			.limit(1);
 
-	const [result] = await db
-		.with(goalCompletionCounts)
-		.select({
-			desiredWeeklyFrequency: goals.desiredWeeklyFrequency,
-			completionCount: sql`
-				COALESCE(${goalCompletionCounts.completionCount}, 0)
-			`.mapWith(Number),
-		})
-		.from(goals)
-		.leftJoin(goalCompletionCounts, eq(goalCompletionCounts.goalId, goals.id))
-		.where(
-			and(
-				eq(goals.id, goalId),
-				eq(goals.userId, userId),
-				eq(goals.isArchived, false)
-			)
+		if (todayCompletion) {
+			throw new ConflictError("goal", "already completed today");
+		}
+
+		const goalCompletionCounts = tx.$with("goal_completion_counts").as(
+			tx
+				.select({
+					goalId: goalCompletions.goalId,
+					completionCount: count(goalCompletions.id).as("completion_count"),
+				})
+				.from(goalCompletions)
+				.where(
+					and(
+						gte(goalCompletions.createdAt, firstDayOfWeek),
+						lte(goalCompletions.createdAt, lastDayOfWeek),
+						eq(goalCompletions.isArchived, false),
+						eq(goalCompletions.goalId, goalId)
+					)
+				)
+				.groupBy(goalCompletions.goalId)
 		);
 
-	const { completionCount, desiredWeeklyFrequency } = result;
+		const [result] = await tx
+			.with(goalCompletionCounts)
+			.select({
+				desiredWeeklyFrequency: goals.desiredWeeklyFrequency,
+				completionCount: sql`
+					COALESCE(${goalCompletionCounts.completionCount}, 0)
+				`.mapWith(Number),
+			})
+			.from(goals)
+			.leftJoin(goalCompletionCounts, eq(goalCompletionCounts.goalId, goals.id))
+			.where(eq(goals.id, goalId));
 
-	if (completionCount >= desiredWeeklyFrequency)
-		throw new ConflictError("goal", "already completed this week");
+		if (!result) {
+			throw new ConflictError("goal", "not found or does not belong to user");
+		}
 
-	const insertResult = await db
-		.insert(goalCompletions)
-		.values({ goalId })
-		.returning();
+		const { completionCount, desiredWeeklyFrequency } = result;
 
-	const [goalCompletion] = insertResult;
+		if (completionCount >= desiredWeeklyFrequency) {
+			throw new ConflictError("goal", "already completed this week");
+		}
 
-	logger.debug({ goalCompletion }, "goal completion created");
+		const [goalCompletion] = await tx
+			.insert(goalCompletions)
+			.values({ goalId })
+			.returning();
 
-	return {
-		goalCompletion,
-	};
+		logger.debug({ goalCompletion }, "goal completion created");
+
+		return {
+			goalCompletion,
+		};
+	});
 };

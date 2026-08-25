@@ -28,4 +28,7 @@
 - **Impacto adicional:** resumo e metas pendentes agora aceitam `week=0` ou deslocamentos negativos para consultar o histórico de semanas completas, de domingo a sábado, sem permitir semanas futuras.
 - **Impacto adicional:** metas passaram a ser retornadas independentemente da semana selecionada; somente suas conclusões são filtradas pelo período consultado.
 - **Impacto adicional:** conclusões históricas agora são rejeitadas no backend; o endpoint exige a semana `0` para registrar uma conclusão com o timestamp atual.
+- **Impacto adicional:** uma meta agora aceita no máximo uma conclusão por dia, com validação transacional para evitar duplicidade em requisições simultâneas.
+- **Impacto adicional:** `/pending-goals` agora retorna `completedToday` para o frontend bloquear visualmente uma nova conclusão no mesmo dia.
+- **Correção:** limites de data usados no cálculo de `completedToday` agora são enviados como ISO UTC ao driver PostgreSQL.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.
