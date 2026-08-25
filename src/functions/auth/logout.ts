@@ -1,9 +1,9 @@
 import { db } from "@/db";
-import { sessions } from "@/db/schema";
+import { goalCompletions, goals, sessions, users } from "@/db/schema";
 import { AuthenticationError } from "@/functions/errors/authentication-error";
 import { logger } from "@/utils/logger";
 import { verifyRefreshToken } from "@/utils/refresh-token";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 interface LogoutRequest {
 	userId: string;
@@ -62,7 +62,28 @@ export const logout = async ({
 		"user session found"
 	);
 
-	await db.delete(sessions).where(eq(sessions.id, matchingSession.id));
+	const user = await db.query.users.findFirst({
+		where: eq(users.id, userId),
+		columns: { isDemo: true },
+	});
+
+	if (!user) throw new AuthenticationError();
+
+	await db.transaction(async tx => {
+		await tx.delete(sessions).where(eq(sessions.id, matchingSession.id));
+
+		if (!user.isDemo) return;
+
+		// Remove os dados temporários da demo junto com a sessão confirmada.
+		await tx.execute(sql`
+			DELETE FROM "goal_completions"
+			WHERE "goal_id" IN (
+				SELECT "id" FROM "goals" WHERE "user_id" = ${userId}
+			)
+		`);
+		await tx.delete(goals).where(eq(goals.userId, userId));
+		await tx.delete(users).where(eq(users.id, userId));
+	});
 
 	logger.debug(
 		{

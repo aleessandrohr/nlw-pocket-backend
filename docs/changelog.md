@@ -24,6 +24,7 @@
 - **Correção:** regras de hoje, semanas e expiração agora usam `America/Fortaleza`, mantendo os instantes persistidos como UTC.
 - **Impacto adicional:** o agrupamento do resumo semanal passou a respeitar o fuso civil do produto em vez do timezone da sessão PostgreSQL.
 - **Impacto adicional:** o cleanup passou a ser executado pelo backend, sem `pg_cron`, SQL operacional ou serviço externo.
+- **Correção:** o logout explícito de uma conta demo agora remove a sessão, a conta e os dados temporários relacionados.
 - **Impacto adicional:** respostas de autenticação e perfil agora informam `isDemo` e `demoExpiresAt`.
 - **Impacto adicional:** o `dayjs` passou a usar uma configuração compartilhada com locale `pt-br`.
 - **Impacto adicional:** access tokens e refresh tokens de demos expiradas agora são rejeitados antes da remoção física pelo cleanup.
