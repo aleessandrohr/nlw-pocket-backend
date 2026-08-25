@@ -15,6 +15,13 @@
 			"when": 1787668602497,
 			"tag": "0001_lowly_kate_bishop",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1787674380540,
+			"tag": "0002_odd_maria_hill",
+			"breakpoints": true
 		}
 	]
 }

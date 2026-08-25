@@ -10,6 +10,7 @@ interface CreateGoalCompletionRequest {
 	userId: string;
 }
 
+// Registra uma conclusão somente para uma meta ativa e pertencente ao usuário.
 export const createGoalCompletion = async ({
 	userId,
 	goalId,
@@ -17,7 +18,13 @@ export const createGoalCompletion = async ({
 	const goalExists = await db
 		.select({ id: goals.id })
 		.from(goals)
-		.where(and(eq(goals.id, goalId), eq(goals.userId, userId)))
+		.where(
+			and(
+				eq(goals.id, goalId),
+				eq(goals.userId, userId),
+				eq(goals.isArchived, false)
+			)
+		)
 		.limit(1);
 
 	if (goalExists.length === 0) {
@@ -38,6 +45,7 @@ export const createGoalCompletion = async ({
 				and(
 					gte(goalCompletions.createdAt, firstDayOfWeek),
 					lte(goalCompletions.createdAt, lastDayOfWeek),
+					eq(goalCompletions.isArchived, false),
 					eq(goalCompletions.goalId, goalId)
 				)
 			)
@@ -54,7 +62,13 @@ export const createGoalCompletion = async ({
 		})
 		.from(goals)
 		.leftJoin(goalCompletionCounts, eq(goalCompletionCounts.goalId, goals.id))
-		.where(eq(goals.id, goalId));
+		.where(
+			and(
+				eq(goals.id, goalId),
+				eq(goals.userId, userId),
+				eq(goals.isArchived, false)
+			)
+		);
 
 	const { completionCount, desiredWeeklyFrequency } = result;
 

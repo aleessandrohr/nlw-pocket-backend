@@ -1,7 +1,3 @@
-import { createGoalSchema } from "@/schemas/goals/create-goal";
-import z from "zod";
+import { goalResponseSchema } from "@/schemas/goals/goal-response";
 
-export const createGoalResponseSchema = createGoalSchema.extend({
-	id: z.cuid2(),
-	createdAt: z.date(),
-});
+export const createGoalResponseSchema = goalResponseSchema;

@@ -22,9 +22,12 @@ import {
 } from "fastify-type-provider-zod";
 import { ZodError } from "zod";
 import { logoutRoute } from "./routes/private/auth/logout";
+import { archiveGoalRoute } from "./routes/private/goals/archive-goal";
 import { createGoalRoute } from "./routes/private/goals/create-goal";
 import { createGoalCompletionRoute } from "./routes/private/goals/create-goal-completion";
+import { getArchivedGoalsRoute } from "./routes/private/goals/get-archived-goals";
 import { getPendingGoalsRoute } from "./routes/private/goals/get-pending-goals";
+import { unarchiveGoalRoute } from "./routes/private/goals/unarchive-goal";
 import { getWeekSummaryRoute } from "./routes/private/summary/get-week-summary";
 import { getProfileRoute } from "./routes/private/user/get-profile";
 import { createUserRoute } from "./routes/public/auth/create-user";
@@ -123,6 +126,9 @@ app.register(fastifyCsrfProtection, {
 const routes = [
 	createUserRoute,
 	createGoalRoute,
+	archiveGoalRoute,
+	unarchiveGoalRoute,
+	getArchivedGoalsRoute,
 	getPendingGoalsRoute,
 	createGoalCompletionRoute,
 	getWeekSummaryRoute,

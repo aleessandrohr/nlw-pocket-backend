@@ -56,6 +56,8 @@ export const goals = pgTable("goals", {
 		.notNull(),
 	title: text("title").notNull(),
 	desiredWeeklyFrequency: integer("desired_weekly_frequency").notNull(),
+	isArchived: boolean("is_archived").notNull().default(false),
+	archivedAt: timestamp("archived_at", { withTimezone: true }),
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),
@@ -68,6 +70,7 @@ export const goalCompletions = pgTable("goal_completions", {
 	goalId: text("goal_id")
 		.references(() => goals.id, { onDelete: "cascade" })
 		.notNull(),
+	isArchived: boolean("is_archived").notNull().default(false),
 	createdAt: timestamp("created_at", { withTimezone: true })
 		.notNull()
 		.defaultNow(),

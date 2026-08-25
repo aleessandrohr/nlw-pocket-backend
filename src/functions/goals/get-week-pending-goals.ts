@@ -8,6 +8,7 @@ interface GetWeekPendingGoalsRequest {
 	userId: string;
 }
 
+// Lista somente metas ativas e calcula as conclusões válidas da semana atual.
 export const getWeekPendingGoals = async ({
 	userId,
 }: GetWeekPendingGoalsRequest) => {
@@ -23,7 +24,13 @@ export const getWeekPendingGoals = async ({
 				createdAt: goals.createdAt,
 			})
 			.from(goals)
-			.where(and(lte(goals.createdAt, lastDayOfWeek), eq(goals.userId, userId)))
+			.where(
+				and(
+					lte(goals.createdAt, lastDayOfWeek),
+					eq(goals.userId, userId),
+					eq(goals.isArchived, false)
+				)
+			)
 	);
 
 	logger.debug({ goalsCreatedUpToWeek }, "goals created up to week");
@@ -38,7 +45,8 @@ export const getWeekPendingGoals = async ({
 			.where(
 				and(
 					gte(goalCompletions.createdAt, firstDayOfWeek),
-					lte(goalCompletions.createdAt, lastDayOfWeek)
+					lte(goalCompletions.createdAt, lastDayOfWeek),
+					eq(goalCompletions.isArchived, false)
 				)
 			)
 			.groupBy(goalCompletions.goalId)

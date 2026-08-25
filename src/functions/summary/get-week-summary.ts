@@ -8,6 +8,7 @@ interface GetWeekSummaryRequest {
 	userId: string;
 }
 
+// Monta o resumo semanal preservando o histórico das metas arquivadas.
 export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
 	const firstDayOfWeek = dayjs().startOf("week").toDate();
 	const lastDayOfWeek = dayjs().endOf("week").toDate();
@@ -31,6 +32,7 @@ export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
 			.select({
 				id: goalCompletions.id,
 				title: goals.title,
+				isArchived: goals.isArchived,
 				completedAt: goalCompletions.createdAt,
 				completedAtDate: sql`
           DATE(${goalCompletions.createdAt})
@@ -59,6 +61,7 @@ export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
             JSON_BUILD_OBJECT(
               'id', ${goalsCompletedInWeek.id},
               'title', ${goalsCompletedInWeek.title},
+              'isArchived', ${goalsCompletedInWeek.isArchived},
               'completedAt', ${goalsCompletedInWeek.completedAt}
             )
           )
@@ -73,6 +76,7 @@ export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
 	interface Goal {
 		id: string;
 		title: string;
+		isArchived: boolean;
 		completedAt: Date | string;
 	}
 

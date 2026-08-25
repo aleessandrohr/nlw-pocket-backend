@@ -8,8 +8,18 @@ em [`src/db/index.ts`](../src/db/index.ts) e [`src/db/schema.ts`](../src/db/sche
 - `users`: nome, e-mail, senha com hash, marcação de demo, expiração e
   timestamps;
 - `sessions`: sessões, hash do refresh token, expiração, user-agent e IP;
-- `goals`: metas vinculadas a um usuário e frequência semanal desejada;
-- `goal_completions`: conclusões vinculadas a uma meta.
+- `goals`: metas vinculadas a um usuário, frequência semanal desejada e estado
+  de arquivamento;
+- `goal_completions`: conclusões vinculadas a uma meta, também com estado de
+  arquivamento sincronizado.
+
+O arquivamento usa `goals.is_archived` como fonte principal e registra o
+instante em `goals.archived_at`. As conclusões relacionadas recebem a mesma
+flag dentro da transação; ao desarquivar, as duas partes são reativadas. As
+metas arquivadas não aparecem em `pending-goals`, mas ficam disponíveis em
+`GET /archived-goals`. O resumo semanal preserva o histórico completo e marca
+cada conclusão com `isArchived` para a interface diferenciar registros
+arquivados.
 
 `sessions.user_id`, `goals.user_id` e `goal_completions.goal_id` agora usam
 `ON DELETE CASCADE` no schema. A migration inicial ainda possui a FK de

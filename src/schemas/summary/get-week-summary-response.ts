@@ -10,6 +10,7 @@ export const getWeekSummaryResponseSchema = z.object({
 				z.object({
 					id: z.cuid2(),
 					title: z.string(),
+					isArchived: z.boolean(),
 					completedAt: z.union([z.date(), z.string()]),
 				})
 			)

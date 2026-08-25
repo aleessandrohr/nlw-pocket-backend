@@ -24,4 +24,5 @@
 - **Impacto adicional:** o `dayjs` passou a usar uma configuração compartilhada com locale `pt-br`.
 - **Impacto adicional:** access tokens e refresh tokens de demos expiradas agora são rejeitados antes da remoção física pelo cleanup.
 - **Impacto adicional:** o comando manual `cleanup:demo` permanece disponível para manutenção administrativa.
+- **Impacto adicional:** metas podem ser arquivadas e desarquivadas com suas conclusões em transação; listas ativas ignoram metas arquivadas e o resumo preserva o histórico com `isArchived`.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.

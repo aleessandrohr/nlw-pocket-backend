@@ -25,7 +25,10 @@ Não existe prefixo `/api` no contrato atual.
 | Método | Rota | Função |
 | --- | --- | --- |
 | `POST` | `/goal` | Cadastra uma meta. |
+| `POST` | `/goal/:goalId/archive` | Arquiva uma meta e suas conclusões. |
+| `POST` | `/goal/:goalId/unarchive` | Desarquiva uma meta e suas conclusões. |
 | `GET` | `/pending-goals` | Lista metas pendentes na semana. |
+| `GET` | `/archived-goals` | Lista metas arquivadas do usuário. |
 | `POST` | `/completion` | Registra a conclusão de uma meta. |
 | `GET` | `/summary` | Retorna o resumo semanal. |
 
