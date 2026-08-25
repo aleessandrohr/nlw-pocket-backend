@@ -1,6 +1,6 @@
 import { client, db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import dayjs from "@/lib/dayjs";
+import { nowInAppTimeZone } from "@/lib/dayjs";
 
 // deprecated
 const seed = async () => {
@@ -28,7 +28,7 @@ const seed = async () => {
 		])
 		.returning();
 
-	const startOfWeek = dayjs().startOf("week");
+	const startOfWeek = nowInAppTimeZone().startOf("week");
 
 	await db.insert(goalCompletions).values(
 		goalsResult.map((goalResult, index) => ({

@@ -1,4 +1,4 @@
-import dayjs from "@/lib/dayjs";
+import { nowInAppTimeZone } from "@/lib/dayjs";
 import { BadRequestError } from "../errors/bad-request-error";
 
 interface GetWeekRangeRequest {
@@ -21,7 +21,7 @@ export const getWeekRange = ({ week }: GetWeekRangeRequest = {}): WeekRange => {
 		);
 	}
 
-	const currentSunday = dayjs().startOf("day").day(0);
+	const currentSunday = nowInAppTimeZone().startOf("day").day(0);
 	const firstDay = currentSunday.add(weekOffset, "week");
 
 	return {

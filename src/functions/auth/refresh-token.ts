@@ -2,7 +2,7 @@ import { ACCESS_TOKEN_EXPIRATION_TIME } from "@/config";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
 import { isDemoExpired } from "@/functions/demo/is-demo-expired";
-import dayjs from "@/lib/dayjs";
+import { nowInAppTimeZone } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import {
 	generateRefreshToken,
@@ -72,7 +72,7 @@ export const refreshToken = async ({
 		"user session found"
 	);
 
-	const now = dayjs();
+	const now = nowInAppTimeZone();
 
 	if (now.isAfter(matchingSession.refreshTokenExpiresAt)) {
 		await db.delete(sessions).where(eq(sessions.id, matchingSession.id));

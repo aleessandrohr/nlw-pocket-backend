@@ -11,8 +11,7 @@ export const deleteGoalCompletionRoute: FastifyPluginAsyncZod = async app => {
 			schema: {
 				params: completionIdParamsSchema,
 				summary: "Desmarcar conclusão",
-				description:
-					"Remove uma conclusão somente quando ela pertence à semana atual",
+				description: "Remove somente a conclusão registrada no dia atual",
 				tags: ["goals", "private"],
 				response: {
 					200: deleteGoalCompletionResponseSchema,

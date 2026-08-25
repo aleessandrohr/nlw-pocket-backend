@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import dayjs from "@/lib/dayjs";
+import { nowInAppTimeZone } from "@/lib/dayjs";
 import { and, eq } from "drizzle-orm";
 import { ConflictError } from "../errors/conflit-error";
 import { NotFoundError } from "../errors/not-found-error";
@@ -17,7 +17,7 @@ export const archiveGoal = async ({ goalId, userId }: ArchiveGoalRequest) => {
 			.update(goals)
 			.set({
 				isArchived: true,
-				archivedAt: dayjs().toDate(),
+				archivedAt: nowInAppTimeZone().toDate(),
 			})
 			.where(
 				and(

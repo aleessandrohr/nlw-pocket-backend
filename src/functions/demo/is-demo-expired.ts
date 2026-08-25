@@ -1,4 +1,4 @@
-import dayjs from "@/lib/dayjs";
+import { nowInAppTimeZone } from "@/lib/dayjs";
 
 interface DemoExpiration {
 	isDemo: boolean;
@@ -9,5 +9,5 @@ interface DemoExpiration {
 export const isDemoExpired = ({ isDemo, demoExpiresAt }: DemoExpiration) => {
 	if (!isDemo) return false;
 
-	return !demoExpiresAt || !dayjs().isBefore(demoExpiresAt);
+	return !demoExpiresAt || !nowInAppTimeZone().isBefore(demoExpiresAt);
 };

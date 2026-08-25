@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
 import { getWeekRange } from "@/functions/week/get-week-range";
-import dayjs from "@/lib/dayjs";
+import { nowInAppTimeZone } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { and, asc, count, eq, gte, lte, sql } from "drizzle-orm";
 
@@ -16,8 +16,8 @@ export const getWeekPendingGoals = async ({
 	week,
 }: GetWeekPendingGoalsRequest) => {
 	const { firstDayOfWeek, lastDayOfWeek } = getWeekRange({ week });
-	const startOfToday = dayjs().startOf("day").toISOString();
-	const endOfToday = dayjs().endOf("day").toISOString();
+	const startOfToday = nowInAppTimeZone().startOf("day").toISOString();
+	const endOfToday = nowInAppTimeZone().endOf("day").toISOString();
 
 	const userGoals = db.$with("user_goals").as(
 		db

@@ -19,6 +19,10 @@
 - **Escopo:** banco, manutenção e autenticação de contas demo
 - **Resumo:** adicionadas a conta demo temporária e a rota pública `POST /auth/demo`.
 - **Impacto:** o backend agora cria uma sessão isolada com metas e conclusões iniciais e remove demos anteriores ao iniciar uma nova.
+- **Impacto adicional:** a demo agora inicia com metas antigas, uma meta criada na semana atual, conclusões da semana atual e histórico da semana anterior.
+- **Impacto adicional:** a demo também inicia com metas arquivadas e conclusões arquivadas para exercitar o histórico e a aba de desarquivamento.
+- **Correção:** regras de hoje, semanas e expiração agora usam `America/Fortaleza`, mantendo os instantes persistidos como UTC.
+- **Impacto adicional:** o agrupamento do resumo semanal passou a respeitar o fuso civil do produto em vez do timezone da sessão PostgreSQL.
 - **Impacto adicional:** o cleanup passou a ser executado pelo backend, sem `pg_cron`, SQL operacional ou serviço externo.
 - **Impacto adicional:** respostas de autenticação e perfil agora informam `isDemo` e `demoExpiresAt`.
 - **Impacto adicional:** o `dayjs` passou a usar uma configuração compartilhada com locale `pt-br`.
@@ -32,5 +36,6 @@
 - **Impacto adicional:** `/pending-goals` agora retorna `completedToday` para o frontend bloquear visualmente uma nova conclusão no mesmo dia.
 - **Correção:** limites de data usados no cálculo de `completedToday` agora são enviados como ISO UTC ao driver PostgreSQL.
 - **Impacto adicional:** adicionada a remoção de conclusões da semana atual, mantendo conclusões históricas imutáveis.
+- **Correção:** a remoção de conclusão agora é permitida somente no mesmo dia do registro, mantendo os demais dias como histórico.
 - **Correção:** o CORS passou a autorizar o método `DELETE` usado para desmarcar conclusões.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.

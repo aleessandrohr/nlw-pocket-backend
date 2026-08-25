@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import { getWeekRange } from "@/functions/week/get-week-range";
+import { nowInAppTimeZone } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { and, eq } from "drizzle-orm";
 import { ConflictError } from "../errors/conflit-error";
@@ -11,12 +11,13 @@ interface DeleteGoalCompletionRequest {
 	userId: string;
 }
 
-// Remove uma conclusão somente da semana atual e preserva o histórico do usuário.
+// Remove somente a conclusão registrada hoje e mantém o histórico imutável.
 export const deleteGoalCompletion = async ({
 	completionId,
 	userId,
 }: DeleteGoalCompletionRequest) => {
-	const { firstDayOfWeek, lastDayOfWeek } = getWeekRange({ week: 0 });
+	const startOfToday = nowInAppTimeZone().startOf("day").toDate();
+	const endOfToday = nowInAppTimeZone().endOf("day").toDate();
 
 	return db.transaction(async tx => {
 		const [completion] = await tx
@@ -39,10 +40,13 @@ export const deleteGoalCompletion = async ({
 		if (
 			completion.isArchived ||
 			completion.goalIsArchived ||
-			completion.createdAt < firstDayOfWeek ||
-			completion.createdAt > lastDayOfWeek
+			completion.createdAt < startOfToday ||
+			completion.createdAt > endOfToday
 		) {
-			throw new ConflictError("goal completion", "history cannot be changed");
+			throw new ConflictError(
+				"goal completion",
+				"only today's completion can be removed"
+			);
 		}
 
 		const [deletedCompletion] = await tx

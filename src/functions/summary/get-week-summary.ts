@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
 import { getWeekRange } from "@/functions/week/get-week-range";
+import { toAppTimeZone } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 
@@ -32,9 +33,6 @@ export const getWeekSummary = async ({
 				title: goals.title,
 				isArchived: goals.isArchived,
 				completedAt: goalCompletions.createdAt,
-				completedAtDate: sql<string>`DATE(${goalCompletions.createdAt})`.as(
-					"completedAtDate"
-				),
 			})
 			.from(goalCompletions)
 			.orderBy(desc(goalCompletions.createdAt))
@@ -57,14 +55,17 @@ export const getWeekSummary = async ({
 
 	const goalsPerDay = goalsCompletedInWeek.reduce<Record<string, Array<Goal>>>(
 		(accumulator, goal) => {
-			const goalsForDay = accumulator[goal.completedAtDate] ?? [];
+			const completedAtDate = toAppTimeZone(goal.completedAt).format(
+				"YYYY-MM-DD"
+			);
+			const goalsForDay = accumulator[completedAtDate] ?? [];
 			goalsForDay.push({
 				id: goal.id,
 				title: goal.title,
 				isArchived: goal.isArchived,
 				completedAt: goal.completedAt,
 			});
-			accumulator[goal.completedAtDate] = goalsForDay;
+			accumulator[completedAtDate] = goalsForDay;
 			return accumulator;
 		},
 		{}
