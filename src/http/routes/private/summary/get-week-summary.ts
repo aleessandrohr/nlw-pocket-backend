@@ -1,5 +1,6 @@
 import { getWeekSummary } from "@/functions/summary/get-week-summary";
 import { getWeekSummaryResponseSchema } from "@/schemas/summary/get-week-summary-response";
+import { weekQuerySchema } from "@/schemas/week";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 
 export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
@@ -11,6 +12,7 @@ export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
 				summary: "Pegar resumo da semana",
 				description: "Pegar resumo da semana",
 				tags: ["summary", "private"],
+				querystring: weekQuerySchema,
 				response: {
 					200: getWeekSummaryResponseSchema,
 				},
@@ -18,7 +20,8 @@ export const getWeekSummaryRoute: FastifyPluginAsyncZod = async app => {
 		},
 		async (request, reply) => {
 			const userId = request.user.id;
-			const { summary } = await getWeekSummary({ userId });
+			const { week } = request.query;
+			const { summary } = await getWeekSummary({ userId, week });
 
 			return reply.status(200).send(summary);
 		}

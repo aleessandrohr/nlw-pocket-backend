@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import dayjs from "@/lib/dayjs";
+import { getWeekRange } from "@/functions/week/get-week-range";
 import { logger } from "@/utils/logger";
 import { and, count, eq, gte, lte, sql } from "drizzle-orm";
 import { ConflictError } from "../errors/conflit-error";
@@ -8,13 +8,21 @@ import { ConflictError } from "../errors/conflit-error";
 interface CreateGoalCompletionRequest {
 	goalId: string;
 	userId: string;
+	week: number;
 }
 
 // Registra uma conclusão somente para uma meta ativa e pertencente ao usuário.
 export const createGoalCompletion = async ({
 	userId,
 	goalId,
+	week,
 }: CreateGoalCompletionRequest) => {
+	const selectedWeek = getWeekRange({ week });
+
+	if (selectedWeek.week !== 0) {
+		throw new ConflictError("goal", "can only be completed in current week");
+	}
+
 	const goalExists = await db
 		.select({ id: goals.id })
 		.from(goals)
@@ -31,8 +39,7 @@ export const createGoalCompletion = async ({
 		throw new ConflictError("goal", "not found or does not belong to user");
 	}
 
-	const firstDayOfWeek = dayjs().startOf("week").toDate();
-	const lastDayOfWeek = dayjs().endOf("week").toDate();
+	const { firstDayOfWeek, lastDayOfWeek } = selectedWeek;
 
 	const goalCompletionCounts = db.$with("goal_completion_counts").as(
 		db

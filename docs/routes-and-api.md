@@ -27,14 +27,21 @@ Não existe prefixo `/api` no contrato atual.
 | `POST` | `/goal` | Cadastra uma meta. |
 | `POST` | `/goal/:goalId/archive` | Arquiva uma meta e suas conclusões. |
 | `POST` | `/goal/:goalId/unarchive` | Desarquiva uma meta e suas conclusões. |
-| `GET` | `/pending-goals` | Lista metas pendentes na semana. |
+| `GET` | `/pending-goals?week=0` | Lista metas e suas conclusões na semana selecionada. `week=0` é a semana atual; `week=-1` é a anterior. |
 | `GET` | `/archived-goals` | Lista metas arquivadas do usuário. |
 | `POST` | `/completion` | Registra a conclusão de uma meta. |
-| `GET` | `/summary` | Retorna o resumo semanal. |
+| `GET` | `/summary?week=0` | Retorna o resumo da semana selecionada. `week=0` é a semana atual; `week=-1` é a anterior. |
 
 As rotas de alteração usam `app.authenticate` e `app.csrfProtection`. Os
 schemas de entrada e resposta ficam em `src/schemas` e são usados pelo
 Fastify para validação e documentação.
+
+As consultas semanais usam semanas completas de domingo a sábado. O parâmetro
+`week` aceita somente inteiros menores ou iguais a zero; semanas futuras não
+fazem parte do histórico disponível.
+
+O `POST /completion` também recebe `week` no corpo e rejeita valores
+diferentes de `0`, pois a conclusão é registrada com o dia e horário atuais.
 
 ## Documentação OpenAPI
 

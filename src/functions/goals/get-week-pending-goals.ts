@@ -1,21 +1,22 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import dayjs from "@/lib/dayjs";
+import { getWeekRange } from "@/functions/week/get-week-range";
 import { logger } from "@/utils/logger";
 import { and, asc, count, eq, gte, lte, sql } from "drizzle-orm";
 
 interface GetWeekPendingGoalsRequest {
 	userId: string;
+	week?: string;
 }
 
-// Lista somente metas ativas e calcula as conclusões válidas da semana atual.
+// Lista metas ativas e calcula as conclusões válidas da semana selecionada.
 export const getWeekPendingGoals = async ({
 	userId,
+	week,
 }: GetWeekPendingGoalsRequest) => {
-	const firstDayOfWeek = dayjs().startOf("week").toDate();
-	const lastDayOfWeek = dayjs().endOf("week").toDate();
+	const { firstDayOfWeek, lastDayOfWeek } = getWeekRange({ week });
 
-	const goalsCreatedUpToWeek = db.$with("goals_created_up_to_week").as(
+	const userGoals = db.$with("user_goals").as(
 		db
 			.select({
 				id: goals.id,
@@ -24,16 +25,10 @@ export const getWeekPendingGoals = async ({
 				createdAt: goals.createdAt,
 			})
 			.from(goals)
-			.where(
-				and(
-					lte(goals.createdAt, lastDayOfWeek),
-					eq(goals.userId, userId),
-					eq(goals.isArchived, false)
-				)
-			)
+			.where(and(eq(goals.userId, userId), eq(goals.isArchived, false)))
 	);
 
-	logger.debug({ goalsCreatedUpToWeek }, "goals created up to week");
+	logger.debug({ userGoals }, "user goals found");
 
 	const goalCompletionCounts = db.$with("goal_completion_counts").as(
 		db
@@ -55,20 +50,20 @@ export const getWeekPendingGoals = async ({
 	logger.debug({ goalCompletionCounts }, "goal completion counts");
 
 	const pendingGoals = await db
-		.with(goalsCreatedUpToWeek, goalCompletionCounts)
+		.with(userGoals, goalCompletionCounts)
 		.select({
-			id: goalsCreatedUpToWeek.id,
-			title: goalsCreatedUpToWeek.title,
-			desiredWeeklyFrequency: goalsCreatedUpToWeek.desiredWeeklyFrequency,
+			id: userGoals.id,
+			title: userGoals.title,
+			desiredWeeklyFrequency: userGoals.desiredWeeklyFrequency,
 			completionCount: sql`
 				COALESCE(${goalCompletionCounts.completionCount}, 0)
 			`.mapWith(Number),
 		})
-		.from(goalsCreatedUpToWeek)
-		.orderBy(asc(goalsCreatedUpToWeek.createdAt))
+		.from(userGoals)
+		.orderBy(asc(userGoals.createdAt))
 		.leftJoin(
 			goalCompletionCounts,
-			eq(goalCompletionCounts.goalId, goalsCreatedUpToWeek.id)
+			eq(goalCompletionCounts.goalId, userGoals.id)
 		);
 
 	logger.debug({ pendingGoals }, "pending goals found");

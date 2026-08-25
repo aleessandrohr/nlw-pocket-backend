@@ -5,8 +5,14 @@ O schema persiste `createdAt`, `updatedAt`, `refreshTokenExpiresAt` e
 
 O backend usa [`src/lib/dayjs.ts`](../src/lib/dayjs.ts) como ponto único de
 configuração do `dayjs`, incluindo o locale `pt-br`. Essa instância é usada
-para calcular início e fim da semana e para gerar dados do seed. A lógica de
-resumo usa o relógio e os timestamps do PostgreSQL nas consultas.
+para gerar dados do seed e calcular as faixas semanais. As consultas de resumo
+e metas recebem o deslocamento `week`: `0` representa a semana atual e valores
+negativos representam semanas anteriores.
+
+As semanas do produto são sempre de domingo a sábado. O deslocamento é
+calculado a partir do domingo da semana atual, sem transformar o filtro em uma
+data civil enviada pelo cliente. A lógica de resumo usa o relógio e os
+timestamps do PostgreSQL nas consultas.
 
 Ao adicionar um instante:
 

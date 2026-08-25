@@ -25,4 +25,7 @@
 - **Impacto adicional:** access tokens e refresh tokens de demos expiradas agora são rejeitados antes da remoção física pelo cleanup.
 - **Impacto adicional:** o comando manual `cleanup:demo` permanece disponível para manutenção administrativa.
 - **Impacto adicional:** metas podem ser arquivadas e desarquivadas com suas conclusões em transação; listas ativas ignoram metas arquivadas e o resumo preserva o histórico com `isArchived`.
+- **Impacto adicional:** resumo e metas pendentes agora aceitam `week=0` ou deslocamentos negativos para consultar o histórico de semanas completas, de domingo a sábado, sem permitir semanas futuras.
+- **Impacto adicional:** metas passaram a ser retornadas independentemente da semana selecionada; somente suas conclusões são filtradas pelo período consultado.
+- **Impacto adicional:** conclusões históricas agora são rejeitadas no backend; o endpoint exige a semana `0` para registrar uma conclusão com o timestamp atual.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.

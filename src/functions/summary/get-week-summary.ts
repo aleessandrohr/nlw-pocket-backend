@@ -1,42 +1,40 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import dayjs from "@/lib/dayjs";
+import { getWeekRange } from "@/functions/week/get-week-range";
 import { logger } from "@/utils/logger";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 
 interface GetWeekSummaryRequest {
 	userId: string;
+	week?: string;
 }
 
-// Monta o resumo semanal preservando o histórico das metas arquivadas.
-export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
-	const firstDayOfWeek = dayjs().startOf("week").toDate();
-	const lastDayOfWeek = dayjs().endOf("week").toDate();
+// Monta o resumo da semana selecionada preservando o histórico das metas arquivadas.
+export const getWeekSummary = async ({
+	userId,
+	week,
+}: GetWeekSummaryRequest) => {
+	const { firstDayOfWeek, lastDayOfWeek } = getWeekRange({ week });
 
-	const goalsCreatedUpToWeek = db.$with("goals_created_up_to_week").as(
+	const [goalsTotal, goalsCompletedInWeek] = await Promise.all([
 		db
 			.select({
-				id: goals.id,
-				title: goals.title,
-				desiredWeeklyFrequency: goals.desiredWeeklyFrequency,
-				createdAt: goals.createdAt,
+				total:
+					sql<number>`COALESCE(SUM(${goals.desiredWeeklyFrequency}), 0)`.mapWith(
+						Number
+					),
 			})
 			.from(goals)
-			.where(and(lte(goals.createdAt, lastDayOfWeek), eq(goals.userId, userId)))
-	);
-
-	logger.debug({ goalsCreatedUpToWeek }, "goals created up to week");
-
-	const goalsCompletedInWeek = db.$with("goals_completed_in_week").as(
+			.where(eq(goals.userId, userId)),
 		db
 			.select({
 				id: goalCompletions.id,
 				title: goals.title,
 				isArchived: goals.isArchived,
 				completedAt: goalCompletions.createdAt,
-				completedAtDate: sql`
-          DATE(${goalCompletions.createdAt})
-        `.as("completedAtDate"),
+				completedAtDate: sql<string>`DATE(${goalCompletions.createdAt})`.as(
+					"completedAtDate"
+				),
 			})
 			.from(goalCompletions)
 			.orderBy(desc(goalCompletions.createdAt))
@@ -47,31 +45,8 @@ export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
 					lte(goalCompletions.createdAt, lastDayOfWeek),
 					eq(goals.userId, userId)
 				)
-			)
-	);
-
-	logger.debug({ goalsCompletedInWeek }, "goals completed in week");
-
-	const goalsCompletedByWeekDay = db.$with("goals_completed_by_week_day").as(
-		db
-			.select({
-				completedAtDate: goalsCompletedInWeek.completedAtDate,
-				completions: sql`
-          JSON_AGG(
-            JSON_BUILD_OBJECT(
-              'id', ${goalsCompletedInWeek.id},
-              'title', ${goalsCompletedInWeek.title},
-              'isArchived', ${goalsCompletedInWeek.isArchived},
-              'completedAt', ${goalsCompletedInWeek.completedAt}
-            )
-          )
-        `.as("completions"),
-			})
-			.from(goalsCompletedInWeek)
-			.groupBy(goalsCompletedInWeek.completedAtDate)
-	);
-
-	logger.debug({ goalsCompletedByWeekDay }, "goals completed by week day");
+			),
+	]);
 
 	interface Goal {
 		id: string;
@@ -80,26 +55,26 @@ export const getWeekSummary = async ({ userId }: GetWeekSummaryRequest) => {
 		completedAt: Date | string;
 	}
 
-	type GoalsPerDay = Record<string, Array<Goal>> | null;
+	const goalsPerDay = goalsCompletedInWeek.reduce<Record<string, Array<Goal>>>(
+		(accumulator, goal) => {
+			const goalsForDay = accumulator[goal.completedAtDate] ?? [];
+			goalsForDay.push({
+				id: goal.id,
+				title: goal.title,
+				isArchived: goal.isArchived,
+				completedAt: goal.completedAt,
+			});
+			accumulator[goal.completedAtDate] = goalsForDay;
+			return accumulator;
+		},
+		{}
+	);
 
-	const [summary] = await db
-		.with(goalsCreatedUpToWeek, goalsCompletedInWeek, goalsCompletedByWeekDay)
-		.select({
-			completed: sql`(SELECT COUNT(*) FROM ${goalsCompletedInWeek})`.mapWith(
-				Number
-			),
-			total:
-				sql`(SELECT SUM(${goalsCreatedUpToWeek.desiredWeeklyFrequency}) FROM ${goalsCreatedUpToWeek})`.mapWith(
-					Number
-				),
-			goalsPerDay: sql<GoalsPerDay>`
-        JSON_OBJECT_AGG(
-          ${goalsCompletedByWeekDay.completedAtDate},
-          ${goalsCompletedByWeekDay.completions}
-        )
-      `,
-		})
-		.from(goalsCompletedByWeekDay);
+	const summary = {
+		completed: goalsCompletedInWeek.length,
+		total: goalsTotal[0]?.total ?? 0,
+		goalsPerDay: Object.keys(goalsPerDay).length > 0 ? goalsPerDay : null,
+	};
 
 	logger.debug({ summary }, "summary found");
 
