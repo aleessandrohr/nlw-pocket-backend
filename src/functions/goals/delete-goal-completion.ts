@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
-import { nowInAppTimeZone } from "@/lib/dayjs";
+import { getCurrentAppDayRange } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { and, eq } from "drizzle-orm";
 import { ConflictError } from "../errors/conflit-error";
@@ -16,8 +16,7 @@ export const deleteGoalCompletion = async ({
 	completionId,
 	userId,
 }: DeleteGoalCompletionRequest) => {
-	const startOfToday = nowInAppTimeZone().startOf("day").toDate();
-	const endOfToday = nowInAppTimeZone().endOf("day").toDate();
+	const { start: startOfToday, end: endOfToday } = getCurrentAppDayRange();
 
 	return db.transaction(async tx => {
 		const [completion] = await tx
@@ -40,8 +39,8 @@ export const deleteGoalCompletion = async ({
 		if (
 			completion.isArchived ||
 			completion.goalIsArchived ||
-			completion.createdAt < startOfToday ||
-			completion.createdAt > endOfToday
+			completion.createdAt < startOfToday.toDate() ||
+			completion.createdAt > endOfToday.toDate()
 		) {
 			throw new ConflictError(
 				"goal completion",

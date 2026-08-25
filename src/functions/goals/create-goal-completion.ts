@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
 import { getWeekRange } from "@/functions/week/get-week-range";
-import { nowInAppTimeZone } from "@/lib/dayjs";
+import { getCurrentAppDayRange } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { and, count, eq, gte, lte, sql } from "drizzle-orm";
 import { ConflictError } from "../errors/conflit-error";
@@ -45,8 +45,7 @@ export const createGoalCompletion = async ({
 			throw new ConflictError("goal", "not found or does not belong to user");
 		}
 
-		const startOfToday = nowInAppTimeZone().startOf("day").toDate();
-		const endOfToday = nowInAppTimeZone().endOf("day").toDate();
+		const { start: startOfToday, end: endOfToday } = getCurrentAppDayRange();
 
 		const [todayCompletion] = await tx
 			.select({ id: goalCompletions.id })
@@ -55,8 +54,8 @@ export const createGoalCompletion = async ({
 				and(
 					eq(goalCompletions.goalId, goalId),
 					eq(goalCompletions.isArchived, false),
-					gte(goalCompletions.createdAt, startOfToday),
-					lte(goalCompletions.createdAt, endOfToday)
+					gte(goalCompletions.createdAt, startOfToday.toDate()),
+					lte(goalCompletions.createdAt, endOfToday.toDate())
 				)
 			)
 			.limit(1);

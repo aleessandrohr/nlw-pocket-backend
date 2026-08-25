@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { goalCompletions, goals } from "@/db/schema";
 import { getWeekRange } from "@/functions/week/get-week-range";
-import { nowInAppTimeZone } from "@/lib/dayjs";
+import { getCurrentAppDayRange } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { and, asc, count, eq, gte, lte, sql } from "drizzle-orm";
 
@@ -15,9 +15,14 @@ export const getWeekPendingGoals = async ({
 	userId,
 	week,
 }: GetWeekPendingGoalsRequest) => {
-	const { firstDayOfWeek, lastDayOfWeek } = getWeekRange({ week });
-	const startOfToday = nowInAppTimeZone().startOf("day").toISOString();
-	const endOfToday = nowInAppTimeZone().endOf("day").toISOString();
+	const {
+		firstDayOfWeek,
+		lastDayOfWeek,
+		week: weekOffset,
+	} = getWeekRange({
+		week,
+	});
+	const { start: startOfToday, end: endOfToday } = getCurrentAppDayRange();
 
 	const userGoals = db.$with("user_goals").as(
 		db
@@ -31,16 +36,14 @@ export const getWeekPendingGoals = async ({
 			.where(and(eq(goals.userId, userId), eq(goals.isArchived, false)))
 	);
 
-	logger.debug({ userGoals }, "user goals found");
-
 	const goalCompletionCounts = db.$with("goal_completion_counts").as(
 		db
 			.select({
 				goalId: goalCompletions.goalId,
 				completionCount: count(goalCompletions.id).as("completion_count"),
 				completedToday: sql<boolean>`BOOL_OR(
-					${goalCompletions.createdAt} >= ${startOfToday}
-					AND ${goalCompletions.createdAt} <= ${endOfToday}
+					${goalCompletions.createdAt} >= ${startOfToday.toISOString()}
+					AND ${goalCompletions.createdAt} <= ${endOfToday.toISOString()}
 				)`.as("completed_today"),
 			})
 			.from(goalCompletions)
@@ -53,8 +56,6 @@ export const getWeekPendingGoals = async ({
 			)
 			.groupBy(goalCompletions.goalId)
 	);
-
-	logger.debug({ goalCompletionCounts }, "goal completion counts");
 
 	const pendingGoals = await db
 		.with(userGoals, goalCompletionCounts)
@@ -76,7 +77,10 @@ export const getWeekPendingGoals = async ({
 			eq(goalCompletionCounts.goalId, userGoals.id)
 		);
 
-	logger.debug({ pendingGoals }, "pending goals found");
+	logger.debug(
+		{ week: weekOffset, goalsCount: pendingGoals.length },
+		"weekly pending goals found"
+	);
 
 	return {
 		pendingGoals,

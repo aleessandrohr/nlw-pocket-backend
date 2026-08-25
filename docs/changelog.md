@@ -39,4 +39,7 @@
 - **Impacto adicional:** adicionada a remoção de conclusões da semana atual, mantendo conclusões históricas imutáveis.
 - **Correção:** a remoção de conclusão agora é permitida somente no mesmo dia do registro, mantendo os demais dias como histórico.
 - **Correção:** o CORS passou a autorizar o método `DELETE` usado para desmarcar conclusões.
+- **Refatoração:** o intervalo do dia civil passou a ser centralizado na biblioteca de data e reutilizado pelas regras de conclusão e metas pendentes.
+- **Correção:** o contrato do resumo agora declara o total sempre numérico e os logs semanais registram apenas métricas, sem títulos ou dados das metas.
+- **Configuração:** o Biome agora ignora artefatos gerados de build e dist, mantendo a validação restrita ao código-fonte.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.

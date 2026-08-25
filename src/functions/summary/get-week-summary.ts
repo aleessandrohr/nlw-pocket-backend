@@ -15,7 +15,13 @@ export const getWeekSummary = async ({
 	userId,
 	week,
 }: GetWeekSummaryRequest) => {
-	const { firstDayOfWeek, lastDayOfWeek } = getWeekRange({ week });
+	const {
+		firstDayOfWeek,
+		lastDayOfWeek,
+		week: weekOffset,
+	} = getWeekRange({
+		week,
+	});
 
 	const [goalsTotal, goalsCompletedInWeek] = await Promise.all([
 		db
@@ -77,7 +83,15 @@ export const getWeekSummary = async ({
 		goalsPerDay: Object.keys(goalsPerDay).length > 0 ? goalsPerDay : null,
 	};
 
-	logger.debug({ summary }, "summary found");
+	logger.debug(
+		{
+			week: weekOffset,
+			completed: summary.completed,
+			total: summary.total,
+			daysWithCompletions: Object.keys(goalsPerDay).length,
+		},
+		"week summary found"
+	);
 
 	return {
 		summary,
