@@ -5,14 +5,8 @@ resumo de produtividade.
 
 ## Sobre o projeto
 
-O backend do in.orbit nasceu durante a **Next Level Week Pocket**, da
-Rocketseat, como parte de um projeto de aprendizado baseado no desafio do
-evento. Depois da experiência, continuei desenvolvendo a aplicação para o meu
-portfólio e evoluí também sua API e suas regras de negócio.
-
-Esta versão mantém a referência educacional original, mas inclui novas
-decisões de arquitetura, segurança, persistência e comportamento do produto
-implementadas posteriormente.
+O in.orbit começou durante a **Next Level Week Pocket**, da Rocketseat. A API foi construída acompanhando o desafio do evento e serviu como uma
+base prática para trabalhar com Fastify, PostgreSQL e Drizzle.
 
 <p align="center">
   <img alt="in.orbit" src="./src/assets/logo.svg" width="180">
@@ -77,16 +71,11 @@ bun run build
 bun run start
 ```
 
-O backend não depende de `pg_cron` ou de serviços externos para invalidar
-contas demo. A API verifica a expiração no caminho de autenticação e a limpeza
-física das contas expiradas é executada pelo próprio backend.
-
 ## Origem
 
-O projeto foi desenvolvido inicialmente a partir da Next Level Week
-Pocket/in.orbit e mantém licença MIT. O layout de referência está no
+O ponto de partida do projeto foi a Next Level Week Pocket/in.orbit. O layout
+original pode ser encontrado no
 [Figma da Rocketseat](https://www.figma.com/community/file/1415093862269754302/nlw-pocket-js-in-orbit).
 
-As funcionalidades, regras de negócio, integrações, refatorações e melhorias
-de segurança descritas neste README fazem parte da evolução desta versão de
-portfólio.
+Depois do evento, a API recebeu novas regras, integrações, refatorações e
+melhorias de segurança. Esta versão continua sob licença MIT.
