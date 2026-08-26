@@ -32,22 +32,28 @@ export const refreshTokenRoute: FastifyPluginAsyncZod = async app => {
 				if (!accessTokenFromCookie || !refreshTokenFromCookie)
 					throw new AuthenticationError();
 
-				const decodedAccessToken = app.jwt.decode(accessTokenFromCookie);
+				// O access token pode estar expirado, mas sua assinatura ainda precisa ser válida.
+				let verifiedAccessToken: Record<string, unknown>;
+
+				try {
+					verifiedAccessToken = app.jwt.verify<Record<string, unknown>>(
+						accessTokenFromCookie,
+						{ ignoreExpiration: true }
+					);
+				} catch {
+					throw new AuthenticationError();
+				}
 
 				if (
-					!decodedAccessToken ||
-					typeof decodedAccessToken !== "object" ||
-					!("id" in decodedAccessToken) ||
-					typeof decodedAccessToken.id !== "string" ||
-					!("sessionId" in decodedAccessToken) ||
-					typeof decodedAccessToken.sessionId !== "string"
+					typeof verifiedAccessToken.id !== "string" ||
+					typeof verifiedAccessToken.sessionId !== "string"
 				)
 					throw new AuthenticationError();
 
-				const userId = decodedAccessToken.id;
-				const sessionId = decodedAccessToken.sessionId;
+				const userId = verifiedAccessToken.id;
+				const sessionId = verifiedAccessToken.sessionId;
 
-				logger.debug("decoded access token");
+				logger.debug("verified access token");
 
 				const { accessTokenUpdated, refreshTokenUpdated } = await refreshToken({
 					refreshTokenFromCookie,
@@ -69,15 +75,19 @@ export const refreshTokenRoute: FastifyPluginAsyncZod = async app => {
 
 				return reply.status(200).send();
 			} catch (error) {
-				reply.clearCookie(ACCESS_TOKEN_COOKIE_NAME, {
-					path: ACCESS_TOKEN_COOKIE_OPTIONS.path,
-				});
-				reply.clearCookie(REFRESH_TOKEN_COOKIE_NAME, {
-					path: REFRESH_TOKEN_COOKIE_OPTIONS.path,
-				});
-				reply.clearCookie(CSRF_TOKEN_COOKIE_NAME, {
-					path: CSRF_TOKEN_COOKIE_OPTIONS.path,
-				});
+				// Limpa credenciais somente quando elas são realmente inválidas.
+				// Erros transitórios de banco ou infraestrutura preservam a sessão.
+				if (error instanceof AuthenticationError) {
+					reply.clearCookie(ACCESS_TOKEN_COOKIE_NAME, {
+						path: ACCESS_TOKEN_COOKIE_OPTIONS.path,
+					});
+					reply.clearCookie(REFRESH_TOKEN_COOKIE_NAME, {
+						path: REFRESH_TOKEN_COOKIE_OPTIONS.path,
+					});
+					reply.clearCookie(CSRF_TOKEN_COOKIE_NAME, {
+						path: CSRF_TOKEN_COOKIE_OPTIONS.path,
+					});
+				}
 
 				throw error;
 			}

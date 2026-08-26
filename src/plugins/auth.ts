@@ -12,35 +12,44 @@ const authenticate = async (request: FastifyRequest) => {
 		await request.jwtVerify({
 			onlyCookie: true,
 		});
+	} catch {
+		throw new AuthenticationError();
+	}
 
-		const [session, user] = await Promise.all([
-			// Exige que a sessão vinculada ao JWT continue ativa após logout ou revogação.
-			db.query.sessions.findFirst({
-				where: and(
-					eq(sessions.id, request.user.sessionId),
-					eq(sessions.userId, request.user.id)
-				),
-				columns: { refreshTokenExpiresAt: true },
-			}),
-			// Revalida a expiração no banco para impedir que um JWT antigo mantenha a demo ativa.
-			db.query.users.findFirst({
-				where: eq(users.id, request.user.id),
-				columns: {
-					isDemo: true,
-					demoExpiresAt: true,
-				},
-			}),
-		]);
+	if (
+		typeof request.user.id !== "string" ||
+		typeof request.user.sessionId !== "string"
+	) {
+		throw new AuthenticationError();
+	}
 
-		if (
-			!session ||
-			!nowInAppTimeZone().isBefore(session.refreshTokenExpiresAt) ||
-			!user ||
-			isDemoExpired(user)
-		) {
-			throw new AuthenticationError();
-		}
-	} catch (err) {
+	// Falhas de infraestrutura precisam permanecer como 5xx. Convertê-las em
+	// 401 faria o frontend tentar renovar e poderia encerrar uma sessão válida.
+	const [session, user] = await Promise.all([
+		// Exige que a sessão vinculada ao JWT continue ativa após logout ou revogação.
+		db.query.sessions.findFirst({
+			where: and(
+				eq(sessions.id, request.user.sessionId),
+				eq(sessions.userId, request.user.id)
+			),
+			columns: { refreshTokenExpiresAt: true },
+		}),
+		// Revalida a expiração no banco para impedir que um JWT antigo mantenha a demo ativa.
+		db.query.users.findFirst({
+			where: eq(users.id, request.user.id),
+			columns: {
+				isDemo: true,
+				demoExpiresAt: true,
+			},
+		}),
+	]);
+
+	if (
+		!session ||
+		!nowInAppTimeZone().isBefore(session.refreshTokenExpiresAt) ||
+		!user ||
+		isDemoExpired(user)
+	) {
 		throw new AuthenticationError();
 	}
 };
