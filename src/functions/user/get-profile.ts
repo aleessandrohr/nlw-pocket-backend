@@ -25,7 +25,7 @@ export const getProfile = async ({ email }: GetProfileRequest) => {
 
 	if (!user) throw new AuthenticationError();
 
-	logger.debug({ user }, "user found");
+	logger.debug("user profile found");
 
 	return {
 		user,

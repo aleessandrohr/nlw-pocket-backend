@@ -1,6 +1,7 @@
 import {
 	ACCESS_TOKEN_COOKIE_NAME,
 	ACCESS_TOKEN_COOKIE_OPTIONS,
+	AUTH_RATE_LIMITS,
 	REFRESH_TOKEN_COOKIE_NAME,
 	REFRESH_TOKEN_COOKIE_OPTIONS,
 } from "@/config";
@@ -13,6 +14,8 @@ export const loginRoute: FastifyPluginAsyncZod = async app => {
 	app.post(
 		"/auth/login",
 		{
+			onRequest: [app.csrfProtection],
+			config: { rateLimit: AUTH_RATE_LIMITS.login },
 			schema: {
 				body: loginSchema,
 				summary: "Entrar",

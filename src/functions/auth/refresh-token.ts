@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
 import { isDemoExpired } from "@/functions/demo/is-demo-expired";
 import { nowInAppTimeZone } from "@/lib/dayjs";
-import { logger } from "@/utils/logger";
 import {
 	generateRefreshToken,
 	verifyRefreshToken,
@@ -29,18 +28,6 @@ export const refreshToken = async ({
 
 	if (userSessions.length === 0) throw new AuthenticationError();
 
-	logger.debug(
-		{
-			userSessions: userSessions.map(session => ({
-				id: session.id,
-				userId: session.userId,
-				userAgent: session.userAgent,
-				ipAddress: session.ipAddress,
-			})),
-		},
-		"user sessions found"
-	);
-
 	let matchingSession: typeof sessions.$inferSelect | null = null;
 
 	for (const session of userSessions) {
@@ -58,31 +45,10 @@ export const refreshToken = async ({
 
 	if (!matchingSession) throw new AuthenticationError();
 
-	const userSessionWithoutHashedRefreshToken = {
-		id: matchingSession.id,
-		userId: matchingSession.userId,
-		userAgent: matchingSession.userAgent,
-		ipAddress: matchingSession.ipAddress,
-	};
-
-	logger.debug(
-		{
-			userSession: userSessionWithoutHashedRefreshToken,
-		},
-		"user session found"
-	);
-
 	const now = nowInAppTimeZone();
 
 	if (now.isAfter(matchingSession.refreshTokenExpiresAt)) {
 		await db.delete(sessions).where(eq(sessions.id, matchingSession.id));
-
-		logger.debug(
-			{
-				userSession: userSessionWithoutHashedRefreshToken,
-			},
-			"user session expired"
-		);
 
 		throw new AuthenticationError();
 	}
@@ -109,13 +75,6 @@ export const refreshToken = async ({
 		throw new AuthenticationError();
 	}
 
-	logger.debug(
-		{
-			user,
-		},
-		"user found"
-	);
-
 	const accessToken = app.jwt.sign(
 		{
 			id: user.id,
@@ -127,8 +86,6 @@ export const refreshToken = async ({
 		}
 	);
 
-	logger.debug("access token jwt refreshed");
-
 	const { hashedRefreshToken, refreshToken, refreshTokenExpiresAt } =
 		await generateRefreshToken();
 
@@ -137,11 +94,9 @@ export const refreshToken = async ({
 		.set({
 			hashedRefreshToken,
 			refreshTokenExpiresAt,
-			updatedAt: new Date(),
+			updatedAt: now.toDate(),
 		})
 		.where(eq(sessions.id, matchingSession.id));
-
-	logger.debug("hashed refresh token updated");
 
 	return {
 		accessTokenUpdated: accessToken,

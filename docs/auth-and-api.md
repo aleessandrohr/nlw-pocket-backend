@@ -30,8 +30,15 @@ Eles são `httpOnly`, `secure` em produção e usam `SameSite=Strict`.
 ## CSRF
 
 `GET /auth/csrf-token` cria o cookie assinado `_csrf` e retorna o valor que o
-frontend mantém em memória. Requests `POST`, `PUT`, `PATCH` e `DELETE` das
-rotas protegidas exigem o header `X-CSRF-TOKEN` correspondente.
+frontend mantém em memória. Antes de login, cadastro ou demo, o cliente chama
+esse endpoint e só então envia a mutation com o header `X-CSRF-TOKEN`.
+Todas as mutations, inclusive as que iniciam sessão, exigem esse header.
+
+## Limites de autenticação
+
+Login, cadastro, demo e refresh usam rate limit por IP. Com `TRUST_PROXY=true`,
+o Fastify considera corretamente o IP encaminhado pelo proxy de produção.
+Não remova esses limites nem use uma origem CORS curinga com cookies.
 
 ## CORS
 

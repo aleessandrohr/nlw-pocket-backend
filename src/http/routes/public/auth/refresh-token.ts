@@ -1,6 +1,7 @@
 import {
 	ACCESS_TOKEN_COOKIE_NAME,
 	ACCESS_TOKEN_COOKIE_OPTIONS,
+	AUTH_RATE_LIMITS,
 	CSRF_TOKEN_COOKIE_NAME,
 	CSRF_TOKEN_COOKIE_OPTIONS,
 	REFRESH_TOKEN_COOKIE_NAME,
@@ -16,6 +17,7 @@ export const refreshTokenRoute: FastifyPluginAsyncZod = async app => {
 		"/auth/refresh-token",
 		{
 			onRequest: [app.csrfProtection],
+			config: { rateLimit: AUTH_RATE_LIMITS.refresh },
 			schema: {
 				summary: "Atualizar token",
 				description: "Atualizar token",
@@ -30,10 +32,17 @@ export const refreshTokenRoute: FastifyPluginAsyncZod = async app => {
 				if (!accessTokenFromCookie || !refreshTokenFromCookie)
 					throw new AuthenticationError();
 
-				const decodedAccessToken = app.jwt.decode(accessTokenFromCookie) as {
-					id: string;
-				};
-				const { id: userId } = decodedAccessToken;
+				const decodedAccessToken = app.jwt.decode(accessTokenFromCookie);
+
+				if (
+					!decodedAccessToken ||
+					typeof decodedAccessToken !== "object" ||
+					!("id" in decodedAccessToken) ||
+					typeof decodedAccessToken.id !== "string"
+				)
+					throw new AuthenticationError();
+
+				const userId = decodedAccessToken.id;
 
 				logger.debug("decoded access token");
 

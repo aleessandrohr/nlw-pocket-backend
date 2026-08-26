@@ -46,12 +46,7 @@ export const createUser = async ({
 				createdAt: users.createdAt,
 			});
 
-		logger.debug(
-			{
-				user: newUser,
-			},
-			"user created"
-		);
+		logger.debug("user created");
 
 		const accessToken = app.jwt.sign(
 			{

@@ -43,3 +43,13 @@
 - **Correção:** o contrato do resumo agora declara o total sempre numérico e os logs semanais registram apenas métricas, sem títulos ou dados das metas.
 - **Configuração:** o Biome agora ignora artefatos gerados de build e dist, mantendo a validação restrita ao código-fonte.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.
+
+## 2026-08-25
+
+- **Escopo:** segurança de autenticação e sessão
+- **Resumo:** CSRF passou a proteger login, cadastro e demo; foram adicionados rate limits por IP e validação segura da configuração de produção.
+- **Impacto:** segredos curtos impedem o startup produtivo e `TRUST_PROXY=true` deve ser configurado no Heroku para preservar o limite por IP real.
+- **Impacto adicional:** removidos logs com dados de usuários e sessões; comparação de senha evita diferença observável entre e-mail inexistente e senha inválida.
+- **Correção:** limpeza e criação da demo agora compartilham a mesma transação.
+- **Dependências:** atualizados Fastify, JWT, Swagger e Drizzle ORM para versões sem os advisories diretos identificados.
+- **Validação:** Biome, build e `git diff --check` concluídos.

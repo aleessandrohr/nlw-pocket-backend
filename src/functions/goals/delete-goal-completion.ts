@@ -55,7 +55,7 @@ export const deleteGoalCompletion = async ({
 
 		if (!deletedCompletion) throw new NotFoundError("goal completion");
 
-		logger.debug({ deletedCompletion }, "goal completion deleted");
+		logger.debug("goal completion deleted");
 
 		return {
 			goalCompletion: deletedCompletion,

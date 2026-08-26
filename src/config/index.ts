@@ -2,6 +2,8 @@ import type { CookieSerializeOptions } from "@fastify/cookie";
 
 export * from "./regex";
 
+export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 export const SALT_ROUNDS = 10;
 
 export const REFRESH_TOKEN_SIZE = 64;
@@ -10,7 +12,7 @@ export const REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
 export const REFRESH_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	path: "/",
 	httpOnly: true,
-	secure: process.env.NODE_ENV === "production",
+	secure: IS_PRODUCTION,
 	sameSite: "strict",
 	maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
 };
@@ -20,7 +22,7 @@ export const ACCESS_TOKEN_COOKIE_NAME = "accessToken";
 export const ACCESS_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	path: "/",
 	httpOnly: true,
-	secure: process.env.NODE_ENV === "production",
+	secure: IS_PRODUCTION,
 	sameSite: "strict",
 	maxAge: REFRESH_TOKEN_EXPIRATION_TIME,
 };
@@ -32,6 +34,14 @@ export const CSRF_TOKEN_COOKIE_OPTIONS: CookieSerializeOptions = {
 	signed: true,
 	path: "/",
 	httpOnly: true,
-	secure: process.env.NODE_ENV === "production",
+	secure: IS_PRODUCTION,
 	sameSite: "strict",
 };
+
+// Restringe abuso de endpoints públicos que criam ou renovam sessões.
+export const AUTH_RATE_LIMITS = {
+	login: { max: 5, timeWindow: "15 minutes" },
+	register: { max: 3, timeWindow: "1 hour" },
+	demo: { max: 5, timeWindow: "15 minutes" },
+	refresh: { max: 30, timeWindow: "1 minute" },
+} as const;

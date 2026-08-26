@@ -109,7 +109,7 @@ export const createGoalCompletion = async ({
 			.values({ goalId })
 			.returning();
 
-		logger.debug({ goalCompletion }, "goal completion created");
+		logger.debug("goal completion created");
 
 		return {
 			goalCompletion,

@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import { goalCompletions, goals, sessions, users } from "@/db/schema";
 import { AuthenticationError } from "@/functions/errors/authentication-error";
-import { logger } from "@/utils/logger";
 import { verifyRefreshToken } from "@/utils/refresh-token";
 import { eq, sql } from "drizzle-orm";
 
@@ -19,18 +18,6 @@ export const logout = async ({
 
 	if (userSessions.length === 0) throw new AuthenticationError();
 
-	logger.debug(
-		{
-			userSessions: userSessions.map(session => ({
-				id: session.id,
-				userId: session.userId,
-				userAgent: session.userAgent,
-				ipAddress: session.ipAddress,
-			})),
-		},
-		"user sessions found"
-	);
-
 	let matchingSession: typeof sessions.$inferSelect | null = null;
 
 	for (const session of userSessions) {
@@ -47,20 +34,6 @@ export const logout = async ({
 	}
 
 	if (!matchingSession) throw new AuthenticationError();
-
-	const userSessionWithoutHashedRefreshToken = {
-		id: matchingSession.id,
-		userId: matchingSession.userId,
-		userAgent: matchingSession.userAgent,
-		ipAddress: matchingSession.ipAddress,
-	};
-
-	logger.debug(
-		{
-			userSession: userSessionWithoutHashedRefreshToken,
-		},
-		"user session found"
-	);
 
 	const user = await db.query.users.findFirst({
 		where: eq(users.id, userId),
@@ -84,13 +57,6 @@ export const logout = async ({
 		await tx.delete(goals).where(eq(goals.userId, userId));
 		await tx.delete(users).where(eq(users.id, userId));
 	});
-
-	logger.debug(
-		{
-			userSession: userSessionWithoutHashedRefreshToken,
-		},
-		"user logged out"
-	);
 
 	return;
 };

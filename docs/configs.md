@@ -7,10 +7,16 @@ Use [`.env.example`](../.env.example) como referência e nunca versione `.env`.
 | --- | --- |
 | `PORT` | Porta HTTP, convertida para número. |
 | `HOST` | Host de bind; padrão `0.0.0.0`. |
+| `NODE_ENV` | Ambiente (`development`, `test` ou `production`). Em produção, exige segredos com ao menos 32 caracteres. |
+| `TRUST_PROXY` | Deve ser `true` atrás do proxy do Heroku para IP real e rate limit corretos; mantenha `false` localmente. |
 | `DATABASE_URL` | URL do PostgreSQL. |
 | `FRONTEND_URL` | Origem autorizada pelo CORS. |
 | `JWT_SECRET` | Assinatura dos access tokens. |
 | `COOKIE_SECRET` | Assinatura do cookie CSRF. |
+
+Em produção, gere valores aleatórios e independentes para `JWT_SECRET` e
+`COOKIE_SECRET`; não reutilize o exemplo local. O deploy no Heroku deve
+configurar `NODE_ENV=production` e `TRUST_PROXY=true`.
 
 ## Scripts
 

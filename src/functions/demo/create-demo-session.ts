@@ -2,12 +2,12 @@ import { randomUUID } from "node:crypto";
 import { ACCESS_TOKEN_EXPIRATION_TIME, DEMO_EXPIRATION_TIME } from "@/config";
 import { db } from "@/db";
 import { goalCompletions, goals, sessions, users } from "@/db/schema";
-import { deleteDemoData } from "@/functions/demo/delete-demo-data";
 import { nowInAppTimeZone } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
 import { hashPassword } from "@/utils/password";
 import { generateRefreshToken } from "@/utils/refresh-token";
 import { createId } from "@paralleldrive/cuid2";
+import { sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 
 interface CreateDemoSessionRequest {
@@ -22,8 +22,6 @@ export const createDemoSession = async ({
 	userAgent,
 	ipAddress,
 }: CreateDemoSessionRequest) => {
-	await deleteDemoData();
-
 	const now = nowInAppTimeZone();
 	const demoExpiresAt = now.add(DEMO_EXPIRATION_TIME, "second").toDate();
 	const demoEmail = `demo-${createId()}@inorbit.local`;
@@ -35,6 +33,26 @@ export const createDemoSession = async ({
 	const currentCompletionAt = now.subtract(30, "minute");
 
 	const user = await db.transaction(async tx => {
+		// Mantém a limpeza e a criação no mesmo commit para não expor uma demo sem dados.
+		await tx.execute(sql`
+			DELETE FROM "goal_completions"
+			WHERE "goal_id" IN (
+				SELECT goals."id"
+				FROM "goals" AS goals
+				INNER JOIN "users" AS users ON users."id" = goals."user_id"
+				WHERE users."is_demo" = true
+			)
+		`);
+		await tx.execute(sql`
+			DELETE FROM "goals"
+			WHERE "user_id" IN (
+				SELECT "id" FROM "users" WHERE "is_demo" = true
+			)
+		`);
+		await tx.execute(sql`
+			DELETE FROM "users" WHERE "is_demo" = true
+		`);
+
 		const [createdUser] = await tx
 			.insert(users)
 			.values({
@@ -189,13 +207,7 @@ export const createDemoSession = async ({
 		}
 	);
 
-	logger.debug(
-		{
-			userId: user.id,
-			demoExpiresAt,
-		},
-		"demo session created"
-	);
+	logger.debug("demo session created");
 
 	return {
 		user,

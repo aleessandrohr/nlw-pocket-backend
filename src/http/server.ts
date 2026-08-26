@@ -1,9 +1,6 @@
 import {
-	ACCESS_TOKEN_COOKIE_NAME,
 	CSRF_TOKEN_COOKIE_OPTIONS,
-	REFRESH_TOKEN_COOKIE_NAME,
 } from "@/config";
-import { AuthenticationError } from "@/functions/errors/authentication-error";
 import authPlugin from "@/plugins/auth";
 import { env } from "@/schemas/env";
 import { logger } from "@/utils/logger";
@@ -11,9 +8,10 @@ import fastifyCookie from "@fastify/cookie";
 import fastifyCors from "@fastify/cors";
 import fastifyCsrfProtection from "@fastify/csrf-protection";
 import fastifyJwt from "@fastify/jwt";
+import fastifyRateLimit from "@fastify/rate-limit";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
-import fastify from "fastify";
+import fastify, { type FastifyError } from "fastify";
 import {
 	type ZodTypeProvider,
 	jsonSchemaTransform,
@@ -37,12 +35,25 @@ import { demoRoute } from "./routes/public/auth/demo";
 import { loginRoute } from "./routes/public/auth/login";
 import { refreshTokenRoute } from "./routes/public/auth/refresh-token";
 
-const app = fastify().withTypeProvider<ZodTypeProvider>();
+const app = fastify({
+	trustProxy: env.TRUST_PROXY,
+}).withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 app.setErrorHandler((error, request, reply) => {
-	logger.error(error);
+	// O Fastify garante esse contrato no handler, mas a versão atual o expõe como unknown.
+	const fastifyError = error as FastifyError;
+
+	// Registra somente metadados para não vazar payloads ou dados pessoais em falhas.
+	logger.error(
+		{
+			errorName: fastifyError.name,
+			requestId: request.id,
+			statusCode: fastifyError.statusCode,
+		},
+		"request failed"
+	);
 
 	if (error instanceof ZodError) {
 		const errorDetails = error.issues.map(issue => ({
@@ -58,17 +69,19 @@ app.setErrorHandler((error, request, reply) => {
 		});
 	}
 
-	if (error.validation) {
+	if (fastifyError.validation) {
 		return reply.status(400).send({
 			statusCode: 400,
 			error: "Bad Request",
 			message: "invalid input data",
-			details: error.validation,
+			details: fastifyError.validation,
 		});
 	}
 
-	const statusCode = error.statusCode || 500;
-	const message = error.statusCode ? error.message : "internal server error";
+	const statusCode = fastifyError.statusCode || 500;
+	const message = fastifyError.statusCode
+		? fastifyError.message
+		: "internal server error";
 
 	if (process.env.NODE_ENV === "production" && statusCode === 500) {
 		return reply.status(500).send({
@@ -80,9 +93,10 @@ app.setErrorHandler((error, request, reply) => {
 
 	reply.status(statusCode).send({
 		statusCode,
-		error: error.name || "Error",
+		error: fastifyError.name || "Error",
 		message,
-		stack: process.env.NODE_ENV !== "production" ? error.stack : undefined,
+		stack:
+			process.env.NODE_ENV !== "production" ? fastifyError.stack : undefined,
 	});
 });
 app.register(fastifyCors, {
@@ -90,12 +104,18 @@ app.register(fastifyCors, {
 	credentials: true,
 	methods: ["GET", "HEAD", "POST", "DELETE", "OPTIONS"],
 });
+app.register(fastifyCookie, {
+	secret: env.COOKIE_SECRET,
+});
 app.register(fastifyJwt, {
 	secret: env.JWT_SECRET,
 	cookie: {
 		cookieName: "accessToken",
 		signed: false,
 	},
+});
+app.register(fastifyRateLimit, {
+	global: false,
 });
 app.register(fastifySwagger, {
 	mode: "dynamic",
@@ -118,9 +138,6 @@ app.register(fastifySwagger, {
 	transform: jsonSchemaTransform,
 });
 app.register(authPlugin);
-app.register(fastifyCookie, {
-	secret: env.COOKIE_SECRET,
-});
 app.register(fastifyCsrfProtection, {
 	cookieOpts: CSRF_TOKEN_COOKIE_OPTIONS,
 });

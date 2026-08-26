@@ -2,7 +2,7 @@ import { ACCESS_TOKEN_EXPIRATION_TIME } from "@/config";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
 import { logger } from "@/utils/logger";
-import { verifyPassword } from "@/utils/password";
+import { PASSWORD_TIMING_HASH, verifyPassword } from "@/utils/password";
 import { generateRefreshToken } from "@/utils/refresh-token";
 import { eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
@@ -38,7 +38,12 @@ export const login = async ({
 		},
 	});
 
-	if (!user) throw new AuthenticationError();
+	const isPasswordCorrect = await verifyPassword(
+		password,
+		user?.password ?? PASSWORD_TIMING_HASH
+	);
+
+	if (!user || !isPasswordCorrect) throw new AuthenticationError();
 
 	const userWithoutPassword = {
 		id: user.id,
@@ -50,23 +55,7 @@ export const login = async ({
 		createdAt: user.createdAt,
 	};
 
-	logger.debug(
-		{
-			user: userWithoutPassword,
-		},
-		"user found"
-	);
-
-	const isPasswordCorrect = await verifyPassword(password, user.password);
-
-	if (!isPasswordCorrect) throw new AuthenticationError();
-
-	logger.debug(
-		{
-			user: userWithoutPassword,
-		},
-		"user authenticated"
-	);
+	logger.debug("user authenticated");
 
 	const accessToken = app.jwt.sign(
 		{

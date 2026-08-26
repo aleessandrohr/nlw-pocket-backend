@@ -38,7 +38,7 @@ export const getArchivedGoals = async ({ userId }: GetArchivedGoalsRequest) => {
 		)
 		.orderBy(desc(goals.archivedAt), desc(goals.createdAt));
 
-	logger.debug({ archivedGoals }, "archived goals found");
+	logger.debug({ goalsCount: archivedGoals.length }, "archived goals found");
 
 	return { archivedGoals };
 };

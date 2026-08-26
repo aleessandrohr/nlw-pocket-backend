@@ -20,7 +20,7 @@ export const createGoal = async ({
 
 	const [goal] = result;
 
-	logger.debug({ goal }, "goal created");
+	logger.debug("goal created");
 
 	return {
 		goal,
