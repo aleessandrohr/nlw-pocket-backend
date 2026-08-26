@@ -1,0 +1,1 @@
+ALTER TABLE "goals" ADD CONSTRAINT "goals_archive_state_consistency" CHECK (("goals"."is_archived" and "goals"."archived_at" is not null) or (not "goals"."is_archived" and "goals"."archived_at" is null));

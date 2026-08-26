@@ -18,7 +18,7 @@
 
 - **Escopo:** banco, manutenção e autenticação de contas demo
 - **Resumo:** adicionadas a conta demo temporária e a rota pública `POST /auth/demo`.
-- **Impacto:** o backend agora cria uma sessão isolada com metas e conclusões iniciais e remove demos anteriores ao iniciar uma nova.
+- **Impacto:** o backend agora cria uma sessão isolada com metas e conclusões iniciais e remove somente demos expiradas ao iniciar uma nova.
 - **Impacto adicional:** a demo agora inicia com metas antigas, uma meta criada na semana atual, conclusões da semana atual e histórico da semana anterior.
 - **Impacto adicional:** a demo também inicia com metas arquivadas e conclusões arquivadas para exercitar o histórico e a aba de desarquivamento.
 - **Correção:** regras de hoje, semanas e expiração agora usam `America/Fortaleza`, mantendo os instantes persistidos como UTC.
@@ -43,6 +43,15 @@
 - **Correção:** o contrato do resumo agora declara o total sempre numérico e os logs semanais registram apenas métricas, sem títulos ou dados das metas.
 - **Configuração:** o Biome agora ignora artefatos gerados de build e dist, mantendo a validação restrita ao código-fonte.
 - **Validação:** migration gerada sem aplicação; Biome, TypeScript, build e `git diff --check` concluídos.
+
+## 2026-08-25
+
+- **Escopo:** regras de sessão, validação e manutenção
+- **Resumo:** access tokens agora são vinculados à sessão persistida, e logout ou expiração revogam o acesso imediatamente.
+- **Impacto:** cadastro cria usuário e sessão atomicamente; refresh e logout validam somente a sessão do token, sem varrer sessões de outros dispositivos.
+- **Impacto adicional:** e-mail, nome e título de meta são normalizados; o seed global destrutivo foi removido e migrations adicionam constraints e índices de domínio.
+- **Correção:** o progresso semanal deixa de contar metas criadas depois da semana ou arquivadas antes dela.
+- **Validação:** Biome, build e `git diff --check` concluídos.
 
 ## 2026-08-25
 

@@ -18,9 +18,9 @@ export const getProfileRoute: FastifyPluginAsyncZod = async app => {
 			},
 		},
 		async (request, reply) => {
-			const { email } = request.user;
+			const { id } = request.user;
 
-			const { user } = await getProfile({ email });
+			const { user } = await getProfile({ userId: id });
 
 			return reply.status(200).send(user);
 		}

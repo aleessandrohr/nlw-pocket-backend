@@ -17,8 +17,8 @@ O acesso normal ao site continuará levando à tela de login.
   em uma transação e sem depender de scheduler ou serviço externo.
 - A rota `POST /auth/demo` cria uma conta isolada, dados iniciais e sessão com
   expiração configurada no backend.
-- A criação de uma nova demo remove todas as contas demo anteriores em uma
-  transação antes de inserir os novos dados.
+- A criação de uma nova demo remove somente contas demo expiradas em uma
+  transação antes de inserir os novos dados; contas ativas permanecem intactas.
 - O middleware e o refresh token invalidam demos expiradas sem depender da
   remoção física imediata.
 - A migration foi gerada, mas ainda não foi aplicada ao banco.

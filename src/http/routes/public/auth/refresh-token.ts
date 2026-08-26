@@ -38,11 +38,14 @@ export const refreshTokenRoute: FastifyPluginAsyncZod = async app => {
 					!decodedAccessToken ||
 					typeof decodedAccessToken !== "object" ||
 					!("id" in decodedAccessToken) ||
-					typeof decodedAccessToken.id !== "string"
+					typeof decodedAccessToken.id !== "string" ||
+					!("sessionId" in decodedAccessToken) ||
+					typeof decodedAccessToken.sessionId !== "string"
 				)
 					throw new AuthenticationError();
 
 				const userId = decodedAccessToken.id;
+				const sessionId = decodedAccessToken.sessionId;
 
 				logger.debug("decoded access token");
 
@@ -50,6 +53,7 @@ export const refreshTokenRoute: FastifyPluginAsyncZod = async app => {
 					refreshTokenFromCookie,
 					app,
 					userId,
+					sessionId,
 				});
 
 				reply.setCookie(

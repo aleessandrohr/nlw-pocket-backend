@@ -12,6 +12,11 @@ O login e o cadastro criam uma sessão persistida em `sessions` e enviam:
 - `refreshToken`: token aleatório armazenado apenas por hash no banco, com
   validade de 7 dias.
 
+O JWT também carrega o identificador da sessão que o emitiu. Em cada rota
+privada, a API confirma que essa sessão ainda pertence ao usuário e não
+expirou; assim, o logout revoga o access token imediatamente, mesmo dentro dos
+15 minutos de validade criptográfica.
+
 `POST /auth/demo` usa o mesmo mecanismo de cookies, mas cria um usuário
 isolado com `is_demo = true`, dados iniciais e expiração configurada no backend. O e-mail
 e a senha são gerados internamente e não são expostos ao visitante. As
@@ -20,9 +25,9 @@ frontend identificar a sessão.
 
 Rotas privadas revalidam `demoExpiresAt` no banco, então um access token ainda
 não expirado não mantém uma demo ativa. O refresh token também é invalidado
-quando o prazo termina. Ao iniciar uma nova demo, as contas demo anteriores
-são removidas em uma transação; não há dependência de `pg_cron` ou serviço
-externo.
+quando o prazo termina. Ao iniciar uma nova demo, somente contas demo
+expiradas e seus dados são removidos em uma transação; demos ativas permanecem
+intactas. Não há dependência de `pg_cron` ou serviço externo.
 
 As opções dos cookies estão em [`src/config/index.ts`](../src/config/index.ts).
 Eles são `httpOnly`, `secure` em produção e usam `SameSite=Strict`.
@@ -33,6 +38,10 @@ Eles são `httpOnly`, `secure` em produção e usam `SameSite=Strict`.
 frontend mantém em memória. Antes de login, cadastro ou demo, o cliente chama
 esse endpoint e só então envia a mutation com o header `X-CSRF-TOKEN`.
 Todas as mutations, inclusive as que iniciam sessão, exigem esse header.
+
+Nome, e-mail e título de meta são normalizados no contrato HTTP. E-mails são
+convertidos para minúsculas e textos obrigatórios são removidos de espaços nas
+extremidades antes da validação.
 
 ## Limites de autenticação
 

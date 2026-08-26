@@ -2,38 +2,30 @@ import { db } from "@/db";
 import { goalCompletions, goals, sessions, users } from "@/db/schema";
 import { AuthenticationError } from "@/functions/errors/authentication-error";
 import { verifyRefreshToken } from "@/utils/refresh-token";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 interface LogoutRequest {
 	userId: string;
+	sessionId: string;
 	refreshTokenFromCookie: string;
 }
 export const logout = async ({
 	userId,
+	sessionId,
 	refreshTokenFromCookie,
 }: LogoutRequest) => {
-	const userSessions = await db.query.sessions.findMany({
-		where: eq(sessions.userId, userId),
+	const session = await db.query.sessions.findFirst({
+		where: and(eq(sessions.id, sessionId), eq(sessions.userId, userId)),
 	});
 
-	if (userSessions.length === 0) throw new AuthenticationError();
+	if (!session) throw new AuthenticationError();
 
-	let matchingSession: typeof sessions.$inferSelect | null = null;
+	const isRefreshTokenValid = await verifyRefreshToken(
+		refreshTokenFromCookie,
+		session.hashedRefreshToken
+	);
 
-	for (const session of userSessions) {
-		const isMatch = await verifyRefreshToken(
-			refreshTokenFromCookie,
-			session.hashedRefreshToken
-		);
-
-		if (isMatch) {
-			matchingSession = session;
-
-			break;
-		}
-	}
-
-	if (!matchingSession) throw new AuthenticationError();
+	if (!isRefreshTokenValid) throw new AuthenticationError();
 
 	const user = await db.query.users.findFirst({
 		where: eq(users.id, userId),
@@ -43,7 +35,7 @@ export const logout = async ({
 	if (!user) throw new AuthenticationError();
 
 	await db.transaction(async tx => {
-		await tx.delete(sessions).where(eq(sessions.id, matchingSession.id));
+		await tx.delete(sessions).where(eq(sessions.id, session.id));
 
 		if (!user.isDemo) return;
 

@@ -32,8 +32,8 @@ export const createDemoSession = async ({
 	const startOfPreviousWeek = startOfCurrentWeek.subtract(1, "week");
 	const currentCompletionAt = now.subtract(30, "minute");
 
-	const user = await db.transaction(async tx => {
-		// Mantém a limpeza e a criação no mesmo commit para não expor uma demo sem dados.
+	const demoSession = await db.transaction(async tx => {
+		// Limpa somente demos expiradas no mesmo commit da nova sessão.
 		await tx.execute(sql`
 			DELETE FROM "goal_completions"
 			WHERE "goal_id" IN (
@@ -41,16 +41,30 @@ export const createDemoSession = async ({
 				FROM "goals" AS goals
 				INNER JOIN "users" AS users ON users."id" = goals."user_id"
 				WHERE users."is_demo" = true
+					AND (
+						users."demo_expires_at" IS NULL
+						OR users."demo_expires_at" <= NOW()
+					)
 			)
 		`);
 		await tx.execute(sql`
 			DELETE FROM "goals"
 			WHERE "user_id" IN (
-				SELECT "id" FROM "users" WHERE "is_demo" = true
+				SELECT "id" FROM "users"
+				WHERE "is_demo" = true
+					AND (
+						"demo_expires_at" IS NULL
+						OR "demo_expires_at" <= NOW()
+					)
 			)
 		`);
 		await tx.execute(sql`
-			DELETE FROM "users" WHERE "is_demo" = true
+			DELETE FROM "users"
+			WHERE "is_demo" = true
+				AND (
+					"demo_expires_at" IS NULL
+					OR "demo_expires_at" <= NOW()
+				)
 		`);
 
 		const [createdUser] = await tx
@@ -185,22 +199,26 @@ export const createDemoSession = async ({
 
 		await tx.insert(goalCompletions).values(demoCompletionValues);
 
-		await tx.insert(sessions).values({
-			userId: createdUser.id,
-			hashedRefreshToken,
-			refreshTokenExpiresAt,
-			userAgent,
-			ipAddress,
-		});
+		const [session] = await tx
+			.insert(sessions)
+			.values({
+				userId: createdUser.id,
+				hashedRefreshToken,
+				refreshTokenExpiresAt,
+				userAgent,
+				ipAddress,
+			})
+			.returning({ id: sessions.id });
 
-		return createdUser;
+		return { user: createdUser, sessionId: session.id };
 	});
 
 	const accessToken = app.jwt.sign(
 		{
-			id: user.id,
-			name: user.name,
-			email: user.email,
+			id: demoSession.user.id,
+			sessionId: demoSession.sessionId,
+			name: demoSession.user.name,
+			email: demoSession.user.email,
 		},
 		{
 			expiresIn: ACCESS_TOKEN_EXPIRATION_TIME,
@@ -210,7 +228,7 @@ export const createDemoSession = async ({
 	logger.debug("demo session created");
 
 	return {
-		user,
+		user: demoSession.user,
 		accessToken,
 		refreshToken,
 	};

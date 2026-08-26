@@ -4,8 +4,8 @@ O schema persiste `createdAt`, `updatedAt`, `refreshTokenExpiresAt` e
 `goalCompletions.createdAt` como `timestamp with time zone`.
 
 O backend usa [`src/lib/dayjs.ts`](../src/lib/dayjs.ts) como ponto único de
-configuração do `dayjs`, incluindo o locale `pt-br`. Essa instância é usada
-para gerar dados do seed e calcular as faixas semanais. As consultas de resumo
+configuração do `dayjs`, incluindo o locale `pt-br`. Essa instância calcula as
+faixas semanais e os prazos de sessão. As consultas de resumo
 e metas recebem o deslocamento `week`: `0` representa a semana atual e valores
 negativos representam semanas anteriores.
 

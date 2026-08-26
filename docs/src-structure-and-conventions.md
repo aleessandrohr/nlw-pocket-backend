@@ -4,7 +4,7 @@
 src/
 ├── assets/       # logo e imagem de capa do projeto
 ├── config/       # cookies, constantes e expressões regulares
-├── db/           # conexão, schema e seed
+├── db/           # conexão, schema e manutenção administrativa
 ├── functions/    # regras de autenticação, metas, resumo e perfil
 ├── http/         # servidor e rotas públicas/privadas
 ├── plugins/      # plugins Fastify, como autenticação

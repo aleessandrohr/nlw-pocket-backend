@@ -7,7 +7,7 @@ import {
 	generateRefreshToken,
 	verifyRefreshToken,
 } from "@/utils/refresh-token";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { AuthenticationError } from "../errors/authentication-error";
 
@@ -15,35 +15,27 @@ interface RefreshTokenRequest {
 	refreshTokenFromCookie: string;
 	app: FastifyInstance;
 	userId: string;
+	sessionId: string;
 }
 
 export const refreshToken = async ({
 	refreshTokenFromCookie,
 	app,
 	userId,
+	sessionId,
 }: RefreshTokenRequest) => {
-	const userSessions = await db.query.sessions.findMany({
-		where: eq(sessions.userId, userId),
+	const matchingSession = await db.query.sessions.findFirst({
+		where: and(eq(sessions.id, sessionId), eq(sessions.userId, userId)),
 	});
 
-	if (userSessions.length === 0) throw new AuthenticationError();
-
-	let matchingSession: typeof sessions.$inferSelect | null = null;
-
-	for (const session of userSessions) {
-		const isMatch = await verifyRefreshToken(
-			refreshTokenFromCookie,
-			session.hashedRefreshToken
-		);
-
-		if (isMatch) {
-			matchingSession = session;
-
-			break;
-		}
-	}
-
 	if (!matchingSession) throw new AuthenticationError();
+
+	const isRefreshTokenValid = await verifyRefreshToken(
+		refreshTokenFromCookie,
+		matchingSession.hashedRefreshToken
+	);
+
+	if (!isRefreshTokenValid) throw new AuthenticationError();
 
 	const now = nowInAppTimeZone();
 
@@ -78,6 +70,7 @@ export const refreshToken = async ({
 	const accessToken = app.jwt.sign(
 		{
 			id: user.id,
+			sessionId: matchingSession.id,
 			name: user.name,
 			email: user.email,
 		},

@@ -1,6 +1,4 @@
-import {
-	CSRF_TOKEN_COOKIE_OPTIONS,
-} from "@/config";
+import { CSRF_TOKEN_COOKIE_OPTIONS } from "@/config";
 import authPlugin from "@/plugins/auth";
 import { env } from "@/schemas/env";
 import { logger } from "@/utils/logger";

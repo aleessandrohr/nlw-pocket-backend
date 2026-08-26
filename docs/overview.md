@@ -34,6 +34,5 @@ fornece operações para metas semanais, conclusões e resumo da semana.
 ## Limites atuais
 
 Não existem organizações, Better Auth, Stripe, billing, formulários ou
-respostas neste backend. A rota de conta demo para o portfólio permanece
-apenas como planejamento em [PLAN.md](./PLAN.md); o schema e a rotina de
-limpeza das contas demo já foram preparados.
+respostas neste backend. A rota de conta demo está implementada; a integração
+com o portfólio permanece documentada em [PLAN.md](./PLAN.md).

@@ -17,7 +17,7 @@ Não existe prefixo `/api` no contrato atual.
 
 | Método | Rota | Função |
 | --- | --- | --- |
-| `POST` | `/auth/logout` | Remove a sessão atual e limpa cookies. |
+| `POST` | `/auth/logout` | Revoga imediatamente a sessão atual e limpa cookies. |
 | `GET` | `/user/profile` | Retorna o perfil autenticado. |
 
 ## Metas e resumo
@@ -45,6 +45,10 @@ O `POST /completion` também recebe `week` no corpo e rejeita valores
 diferentes de `0`, pois a conclusão é registrada com o dia e horário atuais.
 Uma meta só pode receber uma conclusão por dia; novas conclusões no mesmo dia
 são rejeitadas antes do limite semanal.
+
+O total do resumo considera somente metas criadas até o fim da semana
+consultada e exclui metas arquivadas antes do início dela. Conclusões da
+semana arquivada continuam disponíveis no histórico.
 
 ## Documentação OpenAPI
 

@@ -5,13 +5,13 @@ import { eq } from "drizzle-orm";
 import { AuthenticationError } from "../errors/authentication-error";
 
 interface GetProfileRequest {
-	email: string;
+	userId: string;
 }
 
-export const getProfile = async ({ email }: GetProfileRequest) => {
+export const getProfile = async ({ userId }: GetProfileRequest) => {
 	// Expõe o estado demo para o frontend manter a identificação após recarregar a página.
 	const user = await db.query.users.findFirst({
-		where: eq(users.email, email),
+		where: eq(users.id, userId),
 		columns: {
 			id: true,
 			name: true,

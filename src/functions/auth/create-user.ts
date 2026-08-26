@@ -26,31 +26,49 @@ export const createUser = async ({
 	ipAddress,
 }: CreateUserRequest) => {
 	const hashedPassword = await hashPassword(password);
+	const { hashedRefreshToken, refreshToken, refreshTokenExpiresAt } =
+		await generateRefreshToken();
 
 	try {
-		// Retorna o estado demo completo para manter o contrato das sessões consistente.
-		const [newUser] = await db
-			.insert(users)
-			.values({
-				name,
-				email,
-				password: hashedPassword,
-			})
-			.returning({
-				id: users.id,
-				name: users.name,
-				email: users.email,
-				isDemo: users.isDemo,
-				demoExpiresAt: users.demoExpiresAt,
-				updatedAt: users.updatedAt,
-				createdAt: users.createdAt,
-			});
+		const { newUser, sessionId } = await db.transaction(async tx => {
+			// Cria usuário e sessão no mesmo commit para não deixar contas incompletas.
+			const [newUser] = await tx
+				.insert(users)
+				.values({
+					name,
+					email,
+					password: hashedPassword,
+				})
+				.returning({
+					id: users.id,
+					name: users.name,
+					email: users.email,
+					isDemo: users.isDemo,
+					demoExpiresAt: users.demoExpiresAt,
+					updatedAt: users.updatedAt,
+					createdAt: users.createdAt,
+				});
+
+			const [session] = await tx
+				.insert(sessions)
+				.values({
+					userId: newUser.id,
+					hashedRefreshToken,
+					refreshTokenExpiresAt,
+					userAgent,
+					ipAddress,
+				})
+				.returning({ id: sessions.id });
+
+			return { newUser, sessionId: session.id };
+		});
 
 		logger.debug("user created");
 
 		const accessToken = app.jwt.sign(
 			{
 				id: newUser.id,
+				sessionId,
 				name: newUser.name,
 				email: newUser.email,
 			},
@@ -61,18 +79,7 @@ export const createUser = async ({
 
 		logger.debug("access token jwt generated");
 
-		const { hashedRefreshToken, refreshToken, refreshTokenExpiresAt } =
-			await generateRefreshToken();
-
-		await db.insert(sessions).values({
-			userId: newUser.id,
-			hashedRefreshToken,
-			refreshTokenExpiresAt,
-			userAgent,
-			ipAddress,
-		});
-
-		logger.debug("hashed refresh token inserted");
+		logger.debug("user and session created");
 
 		return {
 			user: newUser,

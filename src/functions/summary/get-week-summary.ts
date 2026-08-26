@@ -3,7 +3,7 @@ import { goalCompletions, goals } from "@/db/schema";
 import { getWeekRange } from "@/functions/week/get-week-range";
 import { toAppTimeZone } from "@/lib/dayjs";
 import { logger } from "@/utils/logger";
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, isNull, lte, or, sql } from "drizzle-orm";
 
 interface GetWeekSummaryRequest {
 	userId: string;
@@ -24,6 +24,7 @@ export const getWeekSummary = async ({
 	});
 
 	const [goalsTotal, goalsCompletedInWeek] = await Promise.all([
+		// Considera a meta somente enquanto ela existia no período consultado.
 		db
 			.select({
 				total:
@@ -32,7 +33,13 @@ export const getWeekSummary = async ({
 					),
 			})
 			.from(goals)
-			.where(eq(goals.userId, userId)),
+			.where(
+				and(
+					eq(goals.userId, userId),
+					lte(goals.createdAt, lastDayOfWeek),
+					or(isNull(goals.archivedAt), gt(goals.archivedAt, firstDayOfWeek))
+				)
+			),
 		db
 			.select({
 				id: goalCompletions.id,

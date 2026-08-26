@@ -1,10 +1,11 @@
 import { ACCESS_TOKEN_EXPIRATION_TIME } from "@/config";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
+import { isDemoExpired } from "@/functions/demo/is-demo-expired";
 import { logger } from "@/utils/logger";
 import { PASSWORD_TIMING_HASH, verifyPassword } from "@/utils/password";
 import { generateRefreshToken } from "@/utils/refresh-token";
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import { AuthenticationError } from "../errors/authentication-error";
 
@@ -25,7 +26,8 @@ export const login = async ({
 }: LoginRequest) => {
 	// Carrega o estado demo para que o frontend consiga identificar a sessão atual.
 	const user = await db.query.users.findFirst({
-		where: eq(users.email, email),
+		// Mantém o login compatível com contas antigas gravadas com maiúsculas.
+		where: sql`lower(${users.email}) = ${email}`,
 		columns: {
 			id: true,
 			name: true,
@@ -43,7 +45,9 @@ export const login = async ({
 		user?.password ?? PASSWORD_TIMING_HASH
 	);
 
-	if (!user || !isPasswordCorrect) throw new AuthenticationError();
+	if (!user || !isPasswordCorrect || isDemoExpired(user)) {
+		throw new AuthenticationError();
+	}
 
 	const userWithoutPassword = {
 		id: user.id,
@@ -57,9 +61,24 @@ export const login = async ({
 
 	logger.debug("user authenticated");
 
+	const { hashedRefreshToken, refreshToken, refreshTokenExpiresAt } =
+		await generateRefreshToken();
+
+	const [session] = await db
+		.insert(sessions)
+		.values({
+			userId: user.id,
+			hashedRefreshToken,
+			refreshTokenExpiresAt,
+			userAgent,
+			ipAddress,
+		})
+		.returning({ id: sessions.id });
+
 	const accessToken = app.jwt.sign(
 		{
 			id: user.id,
+			sessionId: session.id,
 			name: user.name,
 			email: user.email,
 		},
@@ -68,20 +87,7 @@ export const login = async ({
 		}
 	);
 
-	logger.debug("access token jwt generated");
-
-	const { hashedRefreshToken, refreshToken, refreshTokenExpiresAt } =
-		await generateRefreshToken();
-
-	await db.insert(sessions).values({
-		userId: user.id,
-		hashedRefreshToken,
-		refreshTokenExpiresAt,
-		userAgent,
-		ipAddress,
-	});
-
-	logger.debug("hashed refresh token inserted");
+	logger.debug("session and access token created");
 
 	return {
 		user: userWithoutPassword,

@@ -28,9 +28,8 @@ Os scripts principais estão no `package.json`:
 - `build:bun` e `start:bun`: alternativa compilada com Bun;
 - `docker:start` e `docker:stop`: controlam o PostgreSQL local;
 - `db:generate`, `db:migrate` e `db:studio`: ferramentas do Drizzle;
-- `seed`: executa o seed legado do projeto.
-- `cleanup:demo`: remove, em uma transação direta no PostgreSQL, todas as
-  contas demo e seus dados relacionados.
+- `cleanup:demo`: remove, em uma transação direta no PostgreSQL, contas demo
+  expiradas e seus dados relacionados.
 
 ## Qualidade
 

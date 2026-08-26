@@ -22,12 +22,16 @@ export const logoutRoute: FastifyPluginAsyncZod = async app => {
 			},
 		},
 		async (request, reply) => {
-			const { id } = request.user;
+			const { id, sessionId } = request.user;
 			const refreshTokenFromCookie = request.cookies.refreshToken;
 
 			if (!refreshTokenFromCookie) throw new AuthenticationError();
 
-			await logout({ userId: id, refreshTokenFromCookie });
+			await logout({
+				userId: id,
+				sessionId,
+				refreshTokenFromCookie,
+			});
 
 			reply.clearCookie(CSRF_TOKEN_COOKIE_NAME, {
 				path: CSRF_TOKEN_COOKIE_OPTIONS.path,
